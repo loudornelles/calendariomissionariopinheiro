@@ -49,10 +49,7 @@ export default function Home() {
               </div>
               <div className="flex flex-wrap gap-3 text-sm text-[var(--muted)]">
                 <span className="rounded-full border border-[var(--line)] bg-white/70 px-4 py-1">
-                  Sem cadastro
-                </span>
-                <span className="rounded-full border border-[var(--line)] bg-white/70 px-4 py-1">
-                  Calendário semestral
+                  Calendário compartilhado
                 </span>
                 <span className="rounded-full border border-[var(--line)] bg-white/70 px-4 py-1">
                   Atualização em tempo real
