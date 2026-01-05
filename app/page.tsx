@@ -1,6 +1,25 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
 
 export default function Home() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedName = name.trim();
+    const trimmedPhone = phone.trim();
+    if (!trimmedName || !trimmedPhone) {
+      return;
+    }
+    localStorage.setItem("cm_nome", trimmedName);
+    localStorage.setItem("cm_telefone", trimmedPhone);
+    router.push("/calendario");
+  };
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div
@@ -60,7 +79,7 @@ export default function Home() {
                 Informe seu nome e telefone para entrar.
               </p>
             </div>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-[var(--ink)]">
                   Nome completo
@@ -68,6 +87,8 @@ export default function Home() {
                 <input
                   type="text"
                   placeholder="Ex.: Maria Fernandes"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
                   className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
                 />
               </div>
@@ -78,15 +99,17 @@ export default function Home() {
                 <input
                   type="tel"
                   placeholder="(11) 99999-9999"
+                  value={phone}
+                  onChange={(event) => setPhone(event.target.value)}
                   className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
                 />
               </div>
-              <Link
-                href="/calendario"
+              <button
+                type="submit"
                 className="flex w-full items-center justify-center rounded-2xl bg-[var(--accent)] px-6 py-3 text-base font-semibold text-white shadow-[0_12px_24px_-16px_rgba(33,87,70,0.9)] transition hover:bg-[var(--accent-strong)]"
               >
                 Entrar
-              </Link>
+              </button>
               <button
                 type="button"
                 className="w-full rounded-2xl border border-[var(--line)] bg-transparent px-6 py-3 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"

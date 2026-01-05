@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
 
@@ -92,6 +92,20 @@ export default function CalendarioPage() {
   const [selectedPeriod, setSelectedPeriod] = useState<
     "Almoço" | "Jantar" | null
   >(null);
+  const [memberName, setMemberName] = useState("Visitante");
+  const [memberPhone, setMemberPhone] = useState("(00) 00000-0000");
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("cm_nome");
+    const storedPhone = localStorage.getItem("cm_telefone");
+    if (storedName) {
+      setMemberName(storedName);
+    }
+    if (storedPhone) {
+      setMemberPhone(storedPhone);
+    }
+  }, []);
+
 
   const openModalForDay = (
     month: MonthInfo,
@@ -115,8 +129,8 @@ export default function CalendarioPage() {
       return;
     }
     const payload = {
-      nome: "Maria",
-      telefone: "11 99999-9999",
+      nome: memberName,
+      telefone: memberPhone,
       data: selectedDay.dateLabel,
       timestamp: selectedDay.timestamp,
       periodo: selectedPeriod,
@@ -151,7 +165,7 @@ export default function CalendarioPage() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full border border-[var(--line)] bg-white/70 px-4 py-2 text-sm text-[var(--muted)]">
-              Bem-vindo(a), visitante
+              Bem-vindo(a), {memberName}
             </span>
             <button
               type="button"
@@ -274,7 +288,7 @@ export default function CalendarioPage() {
                     Nome
                   </p>
                   <p className="text-base font-semibold text-[var(--ink)]">
-                    Maria
+                    {memberName}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[var(--line)] bg-white/70 p-3">
@@ -282,7 +296,7 @@ export default function CalendarioPage() {
                     Telefone
                   </p>
                   <p className="text-base font-semibold text-[var(--ink)]">
-                    11 99999-9999
+                    {memberPhone}
                   </p>
                 </div>
               </div>
