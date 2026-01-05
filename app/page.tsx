@@ -1,64 +1,122 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="relative min-h-screen overflow-hidden">
+      <div
+        className="pointer-events-none absolute -top-24 right-[-140px] h-80 w-80 rounded-full bg-[radial-gradient(circle_at_30%_30%,#f1b97e,transparent_70%)] blur-2xl"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute bottom-[-160px] left-[-120px] h-96 w-96 rounded-full bg-[radial-gradient(circle_at_30%_30%,#88c7a9,transparent_70%)] blur-2xl"
+        aria-hidden="true"
+      />
+      <main className="relative mx-auto flex min-h-screen max-w-6xl items-center px-6 py-16">
+        <section className="grid w-full gap-10 rounded-3xl border border-[var(--line)] bg-[color:var(--card)] p-8 shadow-[0_32px_80px_-48px_rgba(24,20,16,0.55)] backdrop-blur lg:grid-cols-[1.1fr_0.9fr] lg:p-12">
+          <div className="flex flex-col justify-between gap-10">
+            <div className="space-y-6 animate-[float-in_900ms_ease-out_both]">
+              <p className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--line)] bg-white/70 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
+                Ala Pinheiro
+              </p>
+              <div className="space-y-4">
+                <h1 className="text-4xl font-semibold leading-tight text-[var(--ink)] md:text-5xl md:leading-[1.08] font-[var(--font-heading)]">
+                  Calendário de Almoços e Jantas dos Missionários
+                </h1>
+                <p className="max-w-xl text-lg leading-relaxed text-[var(--muted)]">
+                  Organize as refeições com antecedência. Veja datas livres,
+                  parciais ou ocupadas e marque seu almoço ou janta de forma
+                  simples e transparente.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 text-sm text-[var(--muted)]">
+                <span className="rounded-full border border-[var(--line)] bg-white/70 px-4 py-1">
+                  Sem cadastro
+                </span>
+                <span className="rounded-full border border-[var(--line)] bg-white/70 px-4 py-1">
+                  Calendário semestral
+                </span>
+                <span className="rounded-full border border-[var(--line)] bg-white/70 px-4 py-1">
+                  Atualização em tempo real
+                </span>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-[var(--line)] bg-white/70 p-6 text-sm text-[var(--muted)] animate-[fade-up_800ms_ease-out_200ms_both]">
+              <p className="font-semibold text-[var(--ink)]">
+                Como funciona
+              </p>
+              <p className="mt-3 leading-relaxed">
+                Informe seu nome e telefone para acessar o calendário. Seus
+                dados ficam salvos neste navegador para facilitar os próximos
+                acessos. Você pode desmarcar apenas o que você marcou.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col justify-center gap-8 animate-[fade-up_900ms_ease-out_120ms_both]">
+            <div className="space-y-3">
+              <h2 className="text-2xl font-semibold text-[var(--ink)] font-[var(--font-heading)]">
+                Acesse o calendário
+              </h2>
+              <p className="text-base text-[var(--muted)]">
+                Informe seu nome e telefone para entrar.
+              </p>
+            </div>
+            <form className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-[var(--ink)]">
+                  Nome completo
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex.: Maria Fernandes"
+                  className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-[var(--ink)]">
+                  Telefone (WhatsApp)
+                </label>
+                <input
+                  type="tel"
+                  placeholder="(11) 99999-9999"
+                  className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
+                />
+              </div>
+              <button
+                type="button"
+                className="w-full rounded-2xl bg-[var(--accent)] px-6 py-3 text-base font-semibold text-white shadow-[0_12px_24px_-16px_rgba(33,87,70,0.9)] transition hover:bg-[var(--accent-strong)]"
+              >
+                Entrar
+              </button>
+              <button
+                type="button"
+                className="w-full rounded-2xl border border-[var(--line)] bg-transparent px-6 py-3 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+              >
+                Sou administrador
+              </button>
+            </form>
+            <div className="rounded-2xl border border-dashed border-[var(--line)] bg-white/60 p-5 text-sm text-[var(--muted)]">
+              <p className="font-semibold text-[var(--ink)]">
+                Status das datas
+              </p>
+              <div className="mt-3 flex flex-wrap gap-3">
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-[#3ea96b]" />
+                  Livre
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-[#f0b74a]" />
+                  Parcial
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-[#e98536]" />
+                  Ocupado
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-[#2a2a2a]" />
+                  Bloqueado
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   );
