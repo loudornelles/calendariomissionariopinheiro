@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
 
 type DayInfo = {
@@ -78,6 +82,49 @@ function getLeadingBlanks(startsOn: number) {
 }
 
 export default function CalendarioPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<{
+    dateLabel: string;
+    timestamp: string;
+    lunch: string;
+    dinner: string;
+  } | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<
+    "Almoço" | "Jantar" | null
+  >(null);
+
+  const openModalForDay = (
+    month: MonthInfo,
+    monthIndex: number,
+    day: DayInfo
+  ) => {
+    const dateLabel = `${day.day} de ${month.name} de ${month.year}`;
+    const timestamp = new Date(month.year, monthIndex, day.day).toISOString();
+    setSelectedDay({
+      dateLabel,
+      timestamp,
+      lunch: day.lunch,
+      dinner: day.dinner,
+    });
+    setSelectedPeriod(null);
+    setIsModalOpen(true);
+  };
+
+  const handleConfirm = () => {
+    if (!selectedDay || !selectedPeriod) {
+      return;
+    }
+    const payload = {
+      nome: "Maria",
+      telefone: "11 99999-9999",
+      data: selectedDay.dateLabel,
+      timestamp: selectedDay.timestamp,
+      periodo: selectedPeriod,
+    };
+    console.log("Reserva enviada:", payload);
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div
@@ -137,7 +184,7 @@ export default function CalendarioPage() {
             </div>
 
             <div className="grid gap-6">
-              {months.map((month) => {
+              {months.map((month, monthIndex) => {
                 const days = buildDays(month);
                 return (
                   <section
@@ -167,9 +214,15 @@ export default function CalendarioPage() {
                     <div className="mt-3 grid grid-cols-7 gap-2">
                       {getLeadingBlanks(month.startsOn)}
                       {days.map((day) => (
-                        <div
+                        <button
                           key={`${month.name}-${day.day}`}
-                          className={`flex h-24 flex-col justify-between rounded-2xl border px-2 py-2 text-[11px] shadow-sm ${statusStyles[day.status]}`}
+                          type="button"
+                          className={`flex h-24 flex-col justify-between rounded-2xl border px-2 py-2 text-[11px] shadow-sm transition hover:scale-[1.01] hover:shadow-md ${statusStyles[day.status]} ${day.status === "blocked" ? "cursor-not-allowed opacity-80" : "cursor-pointer"}`}
+                          onClick={() =>
+                            day.status === "blocked"
+                              ? null
+                              : openModalForDay(month, monthIndex, day)
+                          }
                         >
                           <span className="text-sm font-semibold">
                             {day.day}
@@ -194,7 +247,7 @@ export default function CalendarioPage() {
                               </div>
                             </div>
                           )}
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </section>
@@ -204,6 +257,98 @@ export default function CalendarioPage() {
           </div>
 
         </section>
+        {isModalOpen && selectedDay ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6 backdrop-blur-[2px]">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Marcar Refeicao"
+              className="w-full max-w-md rounded-3xl border border-[var(--line)] bg-[color:var(--card)] p-6 shadow-[0_24px_64px_-40px_rgba(24,20,16,0.6)]"
+            >
+              <h4 className="text-xl font-semibold text-[var(--ink)] font-[var(--font-heading)]">
+                Marcar Refeição – {selectedDay.dateLabel}
+              </h4>
+              <div className="mt-4 space-y-3 text-sm text-[var(--muted)]">
+                <div className="rounded-2xl border border-[var(--line)] bg-white/70 p-3">
+                  <p className="text-xs font-semibold uppercase text-[var(--muted)]">
+                    Nome
+                  </p>
+                  <p className="text-base font-semibold text-[var(--ink)]">
+                    Maria
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-[var(--line)] bg-white/70 p-3">
+                  <p className="text-xs font-semibold uppercase text-[var(--muted)]">
+                    Telefone
+                  </p>
+                  <p className="text-base font-semibold text-[var(--ink)]">
+                    11 99999-9999
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 space-y-2 text-sm text-[var(--muted)]">
+                <p>
+                  Almoço:{" "}
+                  <span className="font-semibold text-[var(--ink)]">
+                    {selectedDay.lunch}
+                  </span>
+                </p>
+                <p>
+                  Jantar:{" "}
+                  <span className="font-semibold text-[var(--ink)]">
+                    {selectedDay.dinner}
+                  </span>
+                </p>
+              </div>
+              <div className="mt-4 space-y-2">
+                <p className="text-sm font-semibold text-[var(--ink)]">
+                  Selecionar Período:
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                      selectedPeriod === "Almoço"
+                        ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent-strong)]"
+                        : "border-[var(--line)] bg-white text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+                    }`}
+                    onClick={() => setSelectedPeriod("Almoço")}
+                  >
+                    Almoço
+                  </button>
+                  <button
+                    type="button"
+                    className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                      selectedPeriod === "Jantar"
+                        ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent-strong)]"
+                        : "border-[var(--line)] bg-white text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+                    }`}
+                    onClick={() => setSelectedPeriod("Jantar")}
+                  >
+                    Jantar
+                  </button>
+                </div>
+              </div>
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  className="flex-1 rounded-2xl bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--accent-strong)]"
+                  onClick={handleConfirm}
+                >
+                  Confirmar
+                </button>
+                <button
+                  type="button"
+                  className="flex-1 rounded-2xl border border-[var(--line)] bg-transparent px-4 py-3 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
+              <input type="hidden" value={selectedDay.timestamp} />
+            </div>
+          </div>
+        ) : null}
       </main>
     </div>
   );
