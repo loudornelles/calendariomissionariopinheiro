@@ -1,5 +1,5 @@
 export type AppEvent = {
-  data: string;
+  dia: string;
   periodo: string;
   nome: string;
   telefone: string;
@@ -31,6 +31,17 @@ async function callAppsScript<T>(
   return response.json();
 }
 
+function toFormBody(payload: Record<string, string | undefined>) {
+  const params = new URLSearchParams();
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined) {
+      return;
+    }
+    params.set(key, value);
+  });
+  return params;
+}
+
 export async function getEvents(start?: string, end?: string) {
   const url = new URL(requireBaseUrl());
   url.searchParams.set("action", "events");
@@ -45,7 +56,7 @@ export async function getEvents(start?: string, end?: string) {
 }
 
 export async function bookEvent(payload: {
-  data: string;
+  dia: string;
   periodo: string;
   nome: string;
   telefone: string;
@@ -53,49 +64,54 @@ export async function bookEvent(payload: {
 }) {
   return callAppsScript<{}>("book", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
+    body: toFormBody({
+      dia: payload.dia,
+      periodo: payload.periodo,
+      nome: payload.nome,
+      telefone: payload.telefone,
+      timestamp: payload.timestamp,
+    }),
   });
 }
 
 export async function unbookEvent(payload: {
-  data: string;
+  dia: string;
   periodo: string;
   telefone: string;
 }) {
   return callAppsScript<{}>("unbook", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
+    body: toFormBody({
+      dia: payload.dia,
+      periodo: payload.periodo,
+      telefone: payload.telefone,
+    }),
   });
 }
 
-export async function adminLogin(payload: {
-  telefone: string;
-  senha: string;
-}) {
+export async function adminLogin(payload: { telefone: string; senha: string }) {
   return callAppsScript<{}>("admin/login", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
+    body: toFormBody({
+      telefone: payload.telefone,
+      senha: payload.senha,
+    }),
   });
 }
 
 export async function blockDate(payload: {
-  data: string;
-  motivo: string;
+  dia: string;
+  periodo: string;
+  nome: string;
+  cor: string;
 }) {
   return callAppsScript<{}>("block-date", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
+    body: toFormBody({
+      dia: payload.dia,
+      periodo: payload.periodo,
+      nome: payload.nome,
+      cor: payload.cor,
+    }),
   });
 }
