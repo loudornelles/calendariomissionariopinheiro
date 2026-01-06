@@ -22,7 +22,13 @@ import { useEffect, useMemo, useState } from "react";
 
 
 
-import { bookEvent, getEvents, unbookEvent, type AppEvent } from "../../lib/appsScript";
+import {
+  bookEvent,
+  getByMember,
+  getEvents,
+  unbookEvent,
+  type AppEvent,
+} from "../../lib/appsScript";
 
 
 
@@ -580,6 +586,25 @@ function getPeriodType(value?: string) {
 
 
 
+
+function getPeriodLabel(value?: string) {
+  const periodType = getPeriodType(value);
+  if (periodType === "lunch") {
+    return "AlmoВo";
+  }
+  if (periodType === "dinner") {
+    return "Jantar";
+  }
+  return String(value || "Outro").trim();
+}
+
+function formatEventDate(value: unknown) {
+  const parsed = parseDateValue(value);
+  if (!parsed) {
+    return String(value || "");
+  }
+  return parsed.toLocaleDateString("pt-BR");
+}
 
 function normalizeDateKey(value: unknown) {
 
@@ -1300,6 +1325,12 @@ export default function CalendarioPage() {
 
 
   const [events, setEvents] = useState<AppEvent[]>([]);
+  const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
+  const [memberEvents, setMemberEvents] = useState<AppEvent[]>([]);
+  const [memberEventsError, setMemberEventsError] = useState<string | null>(
+    null
+  );
+  const [isLoadingMemberEvents, setIsLoadingMemberEvents] = useState(false);
 
 
 
@@ -1622,17 +1653,61 @@ export default function CalendarioPage() {
 
   };
 
-  const handleUnbook = async (payload: { dia: string; periodo: string }) => {
-    if (isUnbooking) {
+  const loadMemberEvents = async () => {
+    const trimmedName = memberName.trim();
+    const trimmedPhone = memberPhone.trim();
+    if (
+      !trimmedName ||
+      !trimmedPhone ||
+      trimmedName === "Visitante" ||
+      trimmedPhone === "(00) 00000-0000"
+    ) {
+      setMemberEvents([]);
+      setMemberEventsError("Preencha nome e telefone na pagina inicial.");
       return;
+    }
+    setIsLoadingMemberEvents(true);
+    setMemberEventsError(null);
+    try {
+      const response = await getByMember({
+        nome: trimmedName,
+        telefone: trimmedPhone,
+      });
+      if (!response.ok) {
+        setMemberEvents([]);
+        setMemberEventsError(
+          response.error || "Falha ao carregar seus eventos."
+        );
+        return;
+      }
+      setMemberEvents(response.events || []);
+    } catch (error) {
+      setMemberEvents([]);
+      setMemberEventsError("Falha ao carregar seus eventos.");
+    } finally {
+      setIsLoadingMemberEvents(false);
+    }
+  };
+
+  const handleUnbook = async (
+    payload: { dia: string; periodo: string },
+    options?: {
+      onError?: (message: string | null) => void;
+      onSuccess?: () => void | Promise<void>;
+    }
+  ) => {
+    if (isUnbooking) {
+      return false;
     }
     const trimmedPhone = memberPhone.trim();
     if (!trimmedPhone || trimmedPhone === "(00) 00000-0000") {
-      setEventsError("Preencha nome e telefone na pagina inicial.");
-      return;
+      const reportError = options?.onError ?? setEventsError;
+      reportError("Preencha nome e telefone na pagina inicial.");
+      return false;
     }
     setIsUnbooking(`${payload.dia}-${payload.periodo}`);
-    setEventsError(null);
+    const reportError = options?.onError ?? setEventsError;
+    reportError(null);
     try {
       const response = await unbookEvent({
         dia: payload.dia,
@@ -1640,12 +1715,17 @@ export default function CalendarioPage() {
         telefone: trimmedPhone,
       });
       if (!response.ok) {
-        setEventsError(response.error || "Falha ao desmarcar.");
-        return;
+        reportError(response.error || "Falha ao desmarcar.");
+        return false;
       }
       await loadEvents();
+      if (options?.onSuccess) {
+        await options.onSuccess();
+      }
+      return true;
     } catch (error) {
-      setEventsError("Falha ao desmarcar.");
+      reportError("Falha ao desmarcar.");
+      return false;
     } finally {
       setIsUnbooking(null);
     }
@@ -2380,7 +2460,7 @@ export default function CalendarioPage() {
 
 
 
-              Último mês + próximos 5 meses. Clique em um período livre para
+              Clique em um período livre para
 
 
 
@@ -2437,6 +2517,16 @@ export default function CalendarioPage() {
 
 
             </span>
+            <button
+              type="button"
+              className="rounded-full border border-[var(--line)] bg-white px-5 py-2 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+              onClick={() => {
+                setIsMemberModalOpen(true);
+                loadMemberEvents();
+              }}
+            >
+              Meus agendamentos
+            </button>
 
 
 
@@ -4005,6 +4095,129 @@ export default function CalendarioPage() {
 
 
 
+
+        {isMemberModalOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6 backdrop-blur-[2px]">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Meus agendamentos"
+              className="w-full max-w-lg rounded-3xl border border-[var(--line)] bg-[color:var(--card)] p-6 shadow-[0_24px_64px_-40px_rgba(24,20,16,0.6)]"
+            >
+              <h4 className="text-xl font-semibold text-[var(--ink)] font-[var(--font-heading)]">
+                Meus agendamentos
+              </h4>
+
+              <div className="mt-4 space-y-3 text-sm text-[var(--muted)]">
+                <div className="rounded-2xl border border-[var(--line)] bg-white/70 p-3">
+                  <p className="text-xs font-semibold uppercase text-[var(--muted)]">
+                    Nome
+                  </p>
+                  <p className="text-base font-semibold text-[var(--ink)]">
+                    {memberName}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-[var(--line)] bg-white/70 p-3">
+                  <p className="text-xs font-semibold uppercase text-[var(--muted)]">
+                    Telefone
+                  </p>
+                  <p className="text-base font-semibold text-[var(--ink)]">
+                    {memberPhone}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {isLoadingMemberEvents ? (
+                  <p className="text-sm text-[var(--muted)]">
+                    Carregando eventos...
+                  </p>
+                ) : null}
+                {memberEventsError ? (
+                  <p className="text-sm text-[#9b3a3a]">{memberEventsError}</p>
+                ) : null}
+                {!isLoadingMemberEvents &&
+                !memberEventsError &&
+                memberEvents.length === 0 ? (
+                  <p className="text-sm text-[var(--muted)]">
+                    Nenhum evento encontrado.
+                  </p>
+                ) : null}
+                {memberEvents.length ? (
+                  <div className="space-y-3">
+                    {memberEvents.map((event, index) => {
+                      const eventDateKey =
+                        normalizeDateKey(event.dia) ??
+                        String(event.dia || "").trim();
+                      const periodValue = String(event.periodo || "")
+                        .trim()
+                        .toLowerCase();
+                      const periodLabel = getPeriodLabel(event.periodo);
+                      const busy =
+                        isUnbooking === `${eventDateKey}-${periodValue}`;
+                      const canUnbook = Boolean(eventDateKey && periodValue);
+                      return (
+                        <div
+                          key={`${eventDateKey}-${periodValue}-${index}`}
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--line)] bg-white/70 p-3"
+                        >
+                          <div>
+                            <p className="text-xs font-semibold uppercase text-[var(--muted)]">
+                              {periodLabel}
+                            </p>
+                            <p className="text-base font-semibold text-[var(--ink)]">
+                              {formatEventDate(event.dia)}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={!canUnbook || busy}
+                            className="rounded-full border border-[var(--line)] bg-white/70 px-3 py-1 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70"
+                            onClick={() =>
+                              handleUnbook(
+                                {
+                                  dia: eventDateKey,
+                                  periodo: periodValue,
+                                },
+                                {
+                                  onError: setMemberEventsError,
+                                  onSuccess: loadMemberEvents,
+                                }
+                              )
+                            }
+                          >
+                            {busy ? "Aguarde..." : "Desmarcar"}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  className="flex-1 rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+                  onClick={loadMemberEvents}
+                >
+                  Atualizar
+                </button>
+                <button
+                  type="button"
+                  className="flex-1 rounded-2xl border border-[var(--line)] bg-transparent px-4 py-3 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+                  onClick={() => {
+                    setIsMemberModalOpen(false);
+                    setMemberEventsError(null);
+                  }}
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
       </main>
 
