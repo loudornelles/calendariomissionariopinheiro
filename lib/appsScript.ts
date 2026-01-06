@@ -55,6 +55,15 @@ export async function getEvents(start?: string, end?: string) {
   return response.json() as Promise<ApiResponse<{ events: AppEvent[] }>>;
 }
 
+export async function getByMember(payload: { nome: string; telefone: string }) {
+  const url = new URL(requireBaseUrl());
+  url.searchParams.set("action", "getByMember");
+  url.searchParams.set("nome", payload.nome);
+  url.searchParams.set("telefone", payload.telefone);
+  const response = await fetch(url.toString(), { cache: "no-store" });
+  return response.json() as Promise<ApiResponse<{ events: AppEvent[] }>>;
+}
+
 export async function bookEvent(payload: {
   dia: string;
   periodo: string;
