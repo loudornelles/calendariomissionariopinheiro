@@ -61,9 +61,7 @@ export default function Home() {
                 Como funciona
               </p>
               <p className="mt-3 leading-relaxed">
-                Informe seu nome e telefone para acessar o calendário. Seus
-                dados ficam salvos neste navegador para facilitar os próximos
-                acessos. Você pode desmarcar apenas o que você marcou.
+                Informe seu nome e telefone para acessar o calendário. Você pode desmarcar apenas refeições que você marcou.
               </p>
             </div>
           </div>
@@ -107,12 +105,12 @@ export default function Home() {
               >
                 Entrar
               </button>
-              <button
+              {/* <button
                 type="button"
                 className="w-full rounded-2xl border border-[var(--line)] bg-transparent px-6 py-3 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
               >
                 Sou administrador
-              </button>
+              </button> */}
             </form>
             <div className="rounded-2xl border border-dashed border-[var(--line)] bg-white/60 p-5 text-sm text-[var(--muted)]">
               <p className="font-semibold text-[var(--ink)]">

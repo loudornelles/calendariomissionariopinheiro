@@ -1172,7 +1172,7 @@ function getLeadingBlanks(startsOn: number) {
 
 
 
-      className="h-24 rounded-2xl border border-dashed border-[var(--line)] bg-white/40"
+      className="h-32 rounded-2xl border border-dashed border-[var(--line)] bg-white/40 sm:h-24"
 
 
 
@@ -3139,7 +3139,7 @@ export default function CalendarioPage() {
 
 
 
-                          className={`flex h-24 flex-col justify-between rounded-2xl border px-2 py-2 text-[11px] shadow-sm transition hover:scale-[1.01] hover:shadow-md ${statusStyles[day.status]} ${day.status === "blocked" ? "cursor-not-allowed opacity-80" : "cursor-pointer"}`}
+                          className={`flex h-32 flex-col justify-between rounded-2xl border px-2 py-2 text-[12px] shadow-sm transition hover:scale-[1.01] hover:shadow-md sm:h-24 sm:text-[11px] ${statusStyles[day.status]} ${day.status === "blocked" ? "cursor-not-allowed opacity-80" : "cursor-pointer"}`}
 
 
 
@@ -3177,7 +3177,7 @@ export default function CalendarioPage() {
 
 
 
-                          <span className="text-sm font-semibold">
+                          <span className="text-base font-semibold sm:text-sm">
 
 
 
@@ -3209,7 +3209,7 @@ export default function CalendarioPage() {
 
 
 
-                            <span className="text-[10px] font-semibold uppercase">
+                            <span className="text-[11px] font-semibold uppercase sm:text-[10px]">
 
 
 
@@ -3241,19 +3241,37 @@ export default function CalendarioPage() {
 
 
 
-                            <div className="space-y-1">
-                              <div className="flex items-center justify-between gap-2 text-[10px]">
-                                <span>
-                                  Almoço:{" "}
-                                  <span className="font-semibold">
+                            <div className="space-y-1.5 sm:space-y-1">
+                              <div className="flex items-center justify-between gap-2 text-[11px] sm:text-[10px]">
+                                <div className="flex min-w-0 flex-1 items-center gap-1">
+                                  <span className="inline-flex shrink-0 items-center gap-1">
+                                    {day.lunch === "Livre" ? (
+                                      <svg
+                                        aria-hidden="true"
+                                        className="h-3.5 w-3.5 sm:hidden"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <circle cx="12" cy="12" r="4" />
+                                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                                      </svg>
+                                    ) : null}
+                                    <span className="sr-only">Almoço</span>
+                                    <span className="hidden sm:inline">Almoço:</span>
+                                  </span>
+                                  <span className="hidden min-w-0 flex-1 truncate font-semibold sm:inline">
                                     {day.lunch}
                                   </span>
-                                </span>
+                                </div>
                                 {ownsLunch ? (
                                   <button
                                     type="button"
                                     disabled={lunchBusy}
-                                    className="rounded-full border border-[var(--line)] bg-white/70 px-2 py-0.5 text-[9px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70"
+                                    className="hidden rounded-full border border-[var(--line)] bg-white/70 px-2 py-0.5 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70 sm:inline-flex sm:text-[9px] shrink-0"
                                     onClick={(event) => {
                                       event.stopPropagation();
                                       handleUnbook({
@@ -3266,18 +3284,35 @@ export default function CalendarioPage() {
                                   </button>
                                 ) : null}
                               </div>
-                              <div className="flex items-center justify-between gap-2 text-[10px]">
-                                <span>
-                                  Janta:{" "}
-                                  <span className="font-semibold">
+                              <div className="flex items-center justify-between gap-2 text-[11px] sm:text-[10px]">
+                                <div className="flex min-w-0 flex-1 items-center gap-1">
+                                  <span className="inline-flex shrink-0 items-center gap-1">
+                                    {day.dinner === "Livre" ? (
+                                      <svg
+                                        aria-hidden="true"
+                                        className="h-3.5 w-3.5 sm:hidden"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                                      </svg>
+                                    ) : null}
+                                    <span className="sr-only">Janta</span>
+                                    <span className="hidden sm:inline">Janta:</span>
+                                  </span>
+                                  <span className="hidden min-w-0 flex-1 truncate font-semibold sm:inline">
                                     {day.dinner}
                                   </span>
-                                </span>
+                                </div>
                                 {ownsDinner ? (
                                   <button
                                     type="button"
                                     disabled={dinnerBusy}
-                                    className="rounded-full border border-[var(--line)] bg-white/70 px-2 py-0.5 text-[9px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70"
+                                    className="hidden rounded-full border border-[var(--line)] bg-white/70 px-2 py-0.5 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70 sm:inline-flex sm:text-[9px] shrink-0"
                                     onClick={(event) => {
                                       event.stopPropagation();
                                       handleUnbook({
