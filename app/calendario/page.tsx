@@ -22,7 +22,7 @@ import { useEffect, useMemo, useState } from "react";
 
 
 
-import { bookEvent, getEvents, type AppEvent } from "../../lib/appsScript";
+import { bookEvent, getEvents, unbookEvent, type AppEvent } from "../../lib/appsScript";
 
 
 
@@ -87,6 +87,10 @@ type DayInfo = {
 
 
   dinner: string;
+
+  lunchPhone?: string;
+
+  dinnerPhone?: string;
 
 
 
@@ -552,6 +556,17 @@ function parseDateValue(value: unknown) {
 
 }
 
+function getPeriodType(value?: string) {
+  const period = (value || "").toLowerCase();
+  if (["almoco", "almoço"].includes(period)) {
+    return "lunch";
+  }
+  if (["janta", "jantar"].includes(period)) {
+    return "dinner";
+  }
+  return "other";
+}
+
 
 
 
@@ -735,6 +750,8 @@ function buildDays(
 
 
     let blockLabel: string | undefined;
+    let lunchPhone: string | undefined;
+    let dinnerPhone: string | undefined;
 
 
 
@@ -799,6 +816,7 @@ function buildDays(
 
 
         lunch = event.nome || "Ocupado";
+        lunchPhone = event.telefone || "";
 
 
 
@@ -815,6 +833,7 @@ function buildDays(
 
 
         dinner = event.nome || "Ocupado";
+        dinnerPhone = event.telefone || "";
 
 
 
@@ -1039,6 +1058,7 @@ function buildDays(
 
 
       lunch,
+      lunchPhone,
 
 
 
@@ -1047,6 +1067,7 @@ function buildDays(
 
 
       dinner,
+      dinnerPhone,
 
 
 
@@ -1303,6 +1324,7 @@ export default function CalendarioPage() {
 
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUnbooking, setIsUnbooking] = useState<string | null>(null);
 
 
 
@@ -1600,6 +1622,35 @@ export default function CalendarioPage() {
 
   };
 
+  const handleUnbook = async (payload: { dia: string; periodo: string }) => {
+    if (isUnbooking) {
+      return;
+    }
+    const trimmedPhone = memberPhone.trim();
+    if (!trimmedPhone || trimmedPhone === "(00) 00000-0000") {
+      setEventsError("Preencha nome e telefone na pagina inicial.");
+      return;
+    }
+    setIsUnbooking(`${payload.dia}-${payload.periodo}`);
+    setEventsError(null);
+    try {
+      const response = await unbookEvent({
+        dia: payload.dia,
+        periodo: payload.periodo,
+        telefone: trimmedPhone,
+      });
+      if (!response.ok) {
+        setEventsError(response.error || "Falha ao desmarcar.");
+        return;
+      }
+      await loadEvents();
+    } catch (error) {
+      setEventsError("Falha ao desmarcar.");
+    } finally {
+      setIsUnbooking(null);
+    }
+  };
+
 
 
 
@@ -1751,6 +1802,31 @@ export default function CalendarioPage() {
 
 
   }, [events]);
+
+  const memberPhoneKey = memberPhone.trim();
+  const selectedDayEvents = selectedDay
+    ? eventsByDate.get(selectedDay.dateKey) ?? []
+    : [];
+  const lunchEvent = selectedDayEvents.find(
+    (event) => getPeriodType(event.periodo) === "lunch"
+  );
+  const dinnerEvent = selectedDayEvents.find(
+    (event) => getPeriodType(event.periodo) === "dinner"
+  );
+  const ownsSelectedLunch =
+    !!selectedDay &&
+    !!memberPhoneKey &&
+    lunchEvent?.telefone?.trim() === memberPhoneKey;
+  const ownsSelectedDinner =
+    !!selectedDay &&
+    !!memberPhoneKey &&
+    dinnerEvent?.telefone?.trim() === memberPhoneKey;
+  const modalLunchBusy = selectedDay
+    ? isUnbooking === `${selectedDay.dateKey}-almoço`
+    : false;
+  const modalDinnerBusy = selectedDay
+    ? isUnbooking === `${selectedDay.dateKey}-janta`
+    : false;
 
 
 
@@ -2920,7 +2996,26 @@ export default function CalendarioPage() {
 
 
 
-                      {days.map((day) => (
+                      {days.map((day) => {
+                        const dateKey = formatDateKey(
+                          month.year,
+                          monthIndex,
+                          day.day
+                        );
+                        const memberPhoneKey = memberPhone.trim();
+                        const lunchPhoneKey = (day.lunchPhone || "").trim();
+                        const dinnerPhoneKey = (day.dinnerPhone || "").trim();
+                        const ownsLunch =
+                          day.lunch !== "Livre" &&
+                          memberPhoneKey &&
+                          memberPhoneKey === lunchPhoneKey;
+                        const ownsDinner =
+                          day.dinner !== "Livre" &&
+                          memberPhoneKey &&
+                          memberPhoneKey === dinnerPhoneKey;
+                        const lunchBusy = isUnbooking === `${dateKey}-almoço`;
+                        const dinnerBusy = isUnbooking === `${dateKey}-janta`;
+                        return (
 
 
 
@@ -2928,7 +3023,7 @@ export default function CalendarioPage() {
 
 
 
-                        <button
+                        <div
 
 
 
@@ -2937,6 +3032,9 @@ export default function CalendarioPage() {
 
 
                           key={`${month.name}-${day.day}`}
+                          role="button"
+                          tabIndex={day.status === "blocked" ? -1 : 0}
+                          aria-disabled={day.status === "blocked"}
 
 
 
@@ -2944,7 +3042,6 @@ export default function CalendarioPage() {
 
 
 
-                          type="button"
 
 
 
@@ -2960,39 +3057,21 @@ export default function CalendarioPage() {
 
 
 
-                          onClick={() =>
-
-
-
-
-
-
-
-                            day.status === "blocked"
-
-
-
-
-
-
-
-                              ? null
-
-
-
-
-
-
-
-                              : openModalForDay(month, monthIndex, day)
-
-
-
-
-
-
-
-                          }
+                          onClick={() => {
+                            if (day.status === "blocked") {
+                              return;
+                            }
+                            openModalForDay(month, monthIndex, day);
+                          }}
+                          onKeyDown={(event) => {
+                            if (day.status === "blocked") {
+                              return;
+                            }
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              openModalForDay(month, monthIndex, day);
+                            }
+                          }}
 
 
 
@@ -3073,109 +3152,54 @@ export default function CalendarioPage() {
 
 
                             <div className="space-y-1">
-
-
-
-
-
-
-
-                              <div className="text-[10px]">
-
-
-
-
-
-
-
-                                Almoço:{" "}
-
-
-
-
-
-
-
-                                <span className="font-semibold">
-
-
-
-
-
-
-
-                                  {day.lunch}
-
-
-
-
-
-
-
+                              <div className="flex items-center justify-between gap-2 text-[10px]">
+                                <span>
+                                  Almoço:{" "}
+                                  <span className="font-semibold">
+                                    {day.lunch}
+                                  </span>
                                 </span>
-
-
-
-
-
-
-
+                                {ownsLunch ? (
+                                  <button
+                                    type="button"
+                                    disabled={lunchBusy}
+                                    className="rounded-full border border-[var(--line)] bg-white/70 px-2 py-0.5 text-[9px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleUnbook({
+                                        dia: dateKey,
+                                        periodo: "almoço",
+                                      });
+                                    }}
+                                  >
+                                    {lunchBusy ? "Aguarde..." : "Desmarcar"}
+                                  </button>
+                                ) : null}
                               </div>
-
-
-
-
-
-
-
-                              <div className="text-[10px]">
-
-
-
-
-
-
-
-                                Janta:{" "}
-
-
-
-
-
-
-
-                                <span className="font-semibold">
-
-
-
-
-
-
-
-                                  {day.dinner}
-
-
-
-
-
-
-
+                              <div className="flex items-center justify-between gap-2 text-[10px]">
+                                <span>
+                                  Janta:{" "}
+                                  <span className="font-semibold">
+                                    {day.dinner}
+                                  </span>
                                 </span>
-
-
-
-
-
-
-
+                                {ownsDinner ? (
+                                  <button
+                                    type="button"
+                                    disabled={dinnerBusy}
+                                    className="rounded-full border border-[var(--line)] bg-white/70 px-2 py-0.5 text-[9px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleUnbook({
+                                        dia: dateKey,
+                                        periodo: "janta",
+                                      });
+                                    }}
+                                  >
+                                    {dinnerBusy ? "Aguarde..." : "Desmarcar"}
+                                  </button>
+                                ) : null}
                               </div>
-
-
-
-
-
-
-
                             </div>
 
 
@@ -3192,7 +3216,7 @@ export default function CalendarioPage() {
 
 
 
-                        </button>
+                        </div>
 
 
 
@@ -3200,7 +3224,8 @@ export default function CalendarioPage() {
 
 
 
-                      ))}
+                      );
+                      })}
 
 
 
@@ -3505,117 +3530,53 @@ export default function CalendarioPage() {
 
 
               <div className="mt-4 space-y-2 text-sm text-[var(--muted)]">
-
-
-
-
-
-
-
-                <p>
-
-
-
-
-
-
-
-                  Almoço:{" "}
-
-
-
-
-
-
-
-                  <span className="font-semibold text-[var(--ink)]">
-
-
-
-
-
-
-
-                    {selectedDay.lunch}
-
-
-
-
-
-
-
-                  </span>
-
-
-
-
-
-
-
-                </p>
-
-
-
-
-
-
-
-                <p>
-
-
-
-
-
-
-
-                  Jantar:{" "}
-
-
-
-
-
-
-
-                  <span className="font-semibold text-[var(--ink)]">
-
-
-
-
-
-
-
-                    {selectedDay.dinner}
-
-
-
-
-
-
-
-                  </span>
-
-
-
-
-
-
-
-                </p>
-
-
-
-
-
-
-
+                <div className="flex items-center justify-between gap-3">
+                  <p>
+                    Almoço:{" "}
+                    <span className="font-semibold text-[var(--ink)]">
+                      {selectedDay.lunch}
+                    </span>
+                  </p>
+                  {ownsSelectedLunch ? (
+                    <button
+                      type="button"
+                      disabled={modalLunchBusy}
+                      className="rounded-full border border-[var(--line)] bg-white/70 px-3 py-1 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70"
+                      onClick={() =>
+                        handleUnbook({
+                          dia: selectedDay.dateKey,
+                          periodo: "almoço",
+                        })
+                      }
+                    >
+                      {modalLunchBusy ? "Aguarde..." : "Desmarcar"}
+                    </button>
+                  ) : null}
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <p>
+                    Jantar:{" "}
+                    <span className="font-semibold text-[var(--ink)]">
+                      {selectedDay.dinner}
+                    </span>
+                  </p>
+                  {ownsSelectedDinner ? (
+                    <button
+                      type="button"
+                      disabled={modalDinnerBusy}
+                      className="rounded-full border border-[var(--line)] bg-white/70 px-3 py-1 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70"
+                      onClick={() =>
+                        handleUnbook({
+                          dia: selectedDay.dateKey,
+                          periodo: "janta",
+                        })
+                      }
+                    >
+                      {modalDinnerBusy ? "Aguarde..." : "Desmarcar"}
+                    </button>
+                  ) : null}
+                </div>
               </div>
-
-
-
-
-
-
-
               <div className="mt-4 space-y-2">
 
 
