@@ -99,7 +99,9 @@ export async function unbookEvent(payload: {
 }
 
 export async function adminLogin(payload: { telefone: string; senha: string }) {
-  return callAppsScript<{}>("admin/login", {
+  return callAppsScript<{
+    admin?: { nome: string; chamado: string; telefone: string };
+  }>("admin/login", {
     method: "POST",
     body: toFormBody({
       telefone: payload.telefone,

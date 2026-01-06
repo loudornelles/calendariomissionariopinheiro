@@ -3,10 +3,17 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { adminLogin } from "@/lib/appsScript";
+
 export default function Home() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [adminPhone, setAdminPhone] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminError, setAdminError] = useState("");
+  const [isAdminSubmitting, setIsAdminSubmitting] = useState(false);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -18,6 +25,46 @@ export default function Home() {
     localStorage.setItem("cm_nome", trimmedName);
     localStorage.setItem("cm_telefone", trimmedPhone);
     router.push("/calendario");
+  };
+
+  const handleAdminClose = () => {
+    setIsAdminModalOpen(false);
+    setAdminPassword("");
+    setAdminError("");
+  };
+
+  const handleAdminSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedPhone = adminPhone.trim();
+    const trimmedPassword = adminPassword.trim();
+    if (!trimmedPhone || !trimmedPassword) {
+      setAdminError("Informe telefone e senha.");
+      return;
+    }
+    setIsAdminSubmitting(true);
+    setAdminError("");
+    try {
+      const response = await adminLogin({
+        telefone: trimmedPhone,
+        senha: trimmedPassword,
+      });
+      if (!response.ok) {
+        setAdminError("Telefone ou senha invalida.");
+        return;
+      }
+      if (response.admin) {
+        localStorage.setItem("cm_admin_nome", response.admin.nome);
+        localStorage.setItem("cm_admin_chamado", response.admin.chamado);
+        localStorage.setItem("cm_admin_telefone", response.admin.telefone);
+      }
+      handleAdminClose();
+      router.push("/admin");
+    } catch (error) {
+      console.error(error);
+      setAdminError("Nao foi possivel entrar. Tente novamente.");
+    } finally {
+      setIsAdminSubmitting(false);
+    }
   };
 
   return (
@@ -105,12 +152,16 @@ export default function Home() {
               >
                 Entrar
               </button>
-              {/* <button
+              <button
                 type="button"
+                onClick={() => {
+                  setAdminError("");
+                  setIsAdminModalOpen(true);
+                }}
                 className="w-full rounded-2xl border border-[var(--line)] bg-transparent px-6 py-3 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
               >
                 Sou administrador
-              </button> */}
+              </button>
             </form>
             <div className="rounded-2xl border border-dashed border-[var(--line)] bg-white/60 p-5 text-sm text-[var(--muted)]">
               <p className="font-semibold text-[var(--ink)]">
@@ -138,6 +189,83 @@ export default function Home() {
           </div>
         </section>
       </main>
+      {isAdminModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={handleAdminClose}
+            aria-hidden="true"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-login-title"
+            className="relative w-full max-w-md rounded-3xl border border-[var(--line)] bg-white p-6 shadow-[0_32px_80px_-48px_rgba(24,20,16,0.6)]"
+          >
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
+                Area administrativa
+              </p>
+              <h2
+                id="admin-login-title"
+                className="text-2xl font-semibold text-[var(--ink)] font-[var(--font-heading)]"
+              >
+                Login do administrador
+              </h2>
+              <p className="text-sm text-[var(--muted)]">
+                Use seu telefone e senha para acessar o painel.
+              </p>
+            </div>
+            <form className="mt-6 space-y-4" onSubmit={handleAdminSubmit}>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-[var(--ink)]">
+                  Telefone
+                </label>
+                <input
+                  type="tel"
+                  placeholder="(11) 99999-9999"
+                  value={adminPhone}
+                  onChange={(event) => setAdminPhone(event.target.value)}
+                  className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-[var(--ink)]">
+                  Senha
+                </label>
+                <input
+                  type="password"
+                  placeholder="Digite sua senha"
+                  value={adminPassword}
+                  onChange={(event) => setAdminPassword(event.target.value)}
+                  className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
+                />
+              </div>
+              {adminError ? (
+                <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+                  {adminError}
+                </p>
+              ) : null}
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="submit"
+                  disabled={isAdminSubmitting}
+                  className="flex-1 rounded-2xl bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-white shadow-[0_12px_24px_-16px_rgba(33,87,70,0.9)] transition hover:bg-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {isAdminSubmitting ? "Entrando..." : "Entrar"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAdminClose}
+                  className="flex-1 rounded-2xl border border-[var(--line)] bg-transparent px-5 py-3 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
