@@ -15,6 +15,7 @@
 
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 
 
@@ -1213,6 +1214,7 @@ function getLeadingBlanks(startsOn: number) {
 
 
 export default function CalendarioPage() {
+  const router = useRouter();
 
 
 
@@ -2282,6 +2284,12 @@ export default function CalendarioPage() {
 
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("cm_nome");
+    localStorage.removeItem("cm_telefone");
+    router.push("/");
+  };
+
 
 
 
@@ -2551,13 +2559,7 @@ export default function CalendarioPage() {
 
 
               className="rounded-full border border-[var(--line)] bg-white px-5 py-2 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
-
-
-
-
-
-
-
+              onClick={handleLogout}
             >
 
 

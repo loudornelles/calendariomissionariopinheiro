@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   blockDate,
   bookEvent,
   getEvents,
+  unblockDate,
   unbookEvent,
   type AppEvent,
 } from "@/lib/appsScript";
@@ -17,6 +19,7 @@ const BLOCK_COLORS: Record<string, string> = {
 };
 
 export default function AdminPage() {
+  const router = useRouter();
   const [blockType, setBlockType] = useState("P-Day");
   const [blockDateValue, setBlockDateValue] = useState("");
   const [blockReason, setBlockReason] = useState("");
@@ -141,15 +144,20 @@ export default function AdminPage() {
     loadEvents();
   }, []);
 
+  const formatLocalDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const normalizeDateKey = (value: unknown) => {
     if (value instanceof Date) {
-      return value.toISOString().slice(0, 10);
+      return formatLocalDate(value);
     }
     if (typeof value === "number" && Number.isFinite(value)) {
       const excelEpoch = Date.UTC(1899, 11, 30);
-      return new Date(excelEpoch + value * 86400000)
-        .toISOString()
-        .slice(0, 10);
+      return formatLocalDate(new Date(excelEpoch + value * 86400000));
     }
     if (typeof value === "string") {
       const trimmed = value.trim();
@@ -163,7 +171,7 @@ export default function AdminPage() {
       }
       const parsed = new Date(trimmed);
       if (!Number.isNaN(parsed.getTime())) {
-        return parsed.toISOString().slice(0, 10);
+        return formatLocalDate(parsed);
       }
       return trimmed;
     }
@@ -206,6 +214,32 @@ export default function AdminPage() {
     return value || "Outro";
   };
 
+  const todayKey = formatLocalDate(new Date());
+  const sortedEvents = [...events].sort((a, b) => {
+    const aKey = normalizeDateKey(a.dia);
+    const bKey = normalizeDateKey(b.dia);
+    if (!aKey && !bKey) {
+      return 0;
+    }
+    if (!aKey) {
+      return 1;
+    }
+    if (!bKey) {
+      return -1;
+    }
+    const aBucket = aKey < todayKey ? 1 : 0;
+    const bBucket = bKey < todayKey ? 1 : 0;
+    if (aBucket !== bBucket) {
+      return aBucket - bBucket;
+    }
+    if (aKey !== bKey) {
+      return aKey.localeCompare(bKey);
+    }
+    const aPeriod = String(a.periodo || "").toLowerCase();
+    const bPeriod = String(b.periodo || "").toLowerCase();
+    return aPeriod.localeCompare(bPeriod);
+  });
+
   const handleRemove = async (eventItem: AppEvent, key: string) => {
     if (isRemovingEvent) {
       return;
@@ -213,17 +247,32 @@ export default function AdminPage() {
     const dia = normalizeDateKey(eventItem.dia);
     const periodo = String(eventItem.periodo || "").trim().toLowerCase();
     const telefone = String(eventItem.telefone || "").trim();
-    if (!dia || !periodo || !telefone) {
-      setEventsError("Nao foi possivel remover este item.");
-      return;
-    }
     setIsRemovingEvent(key);
     setEventsError(null);
     try {
-      const response = await unbookEvent({ dia, periodo, telefone });
-      if (!response.ok) {
-        setEventsError(response.error || "Falha ao remover.");
-        return;
+    const isBlock = !telefone && (!periodo || periodo === "bloqueio");
+      if (isBlock) {
+        const adminNome =
+          localStorage.getItem("cm_admin_nome")?.trim() || "";
+        if (!dia || !adminNome) {
+          setEventsError("Informe o login do admin para desbloquear.");
+          return;
+        }
+        const response = await unblockDate({ dia, adminNome });
+        if (!response.ok) {
+          setEventsError(response.error || "Falha ao desbloquear.");
+          return;
+        }
+      } else {
+        if (!dia || !periodo || !telefone) {
+          setEventsError("Nao foi possivel remover este item.");
+          return;
+        }
+        const response = await unbookEvent({ dia, periodo, telefone });
+        if (!response.ok) {
+          setEventsError(response.error || "Falha ao remover.");
+          return;
+        }
       }
       await loadEvents();
     } catch (error) {
@@ -231,6 +280,13 @@ export default function AdminPage() {
     } finally {
       setIsRemovingEvent(null);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("cm_admin_nome");
+    localStorage.removeItem("cm_admin_chamado");
+    localStorage.removeItem("cm_admin_telefone");
+    router.push("/");
   };
 
   return (
@@ -258,6 +314,7 @@ export default function AdminPage() {
           </div>
           <button
             type="button"
+            onClick={handleLogout}
             className="rounded-full border border-[var(--line)] bg-white px-5 py-2 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
           >
             Sair
@@ -335,7 +392,7 @@ export default function AdminPage() {
 
             <div className="rounded-3xl border border-[var(--line)] bg-white/80 p-6 shadow-[0_24px_64px_-48px_rgba(24,20,16,0.5)]">
               <h2 className="text-xl font-semibold text-[var(--ink)] font-[var(--font-heading)]">
-                Marcar refeicao
+                Marcar refeição
               </h2>
               <p className="mt-2 text-sm text-[var(--muted)]">
                 Registre um almoço ou janta manualmente.
@@ -437,18 +494,34 @@ export default function AdminPage() {
                   Nenhum evento encontrado.
                 </p>
               ) : null}
-              {events.map((item, index) => {
+              {sortedEvents.map((item, index) => {
                 const key = `${item.dia}-${item.periodo}-${index}`;
+                const periodValue = String(item.periodo || "")
+                  .trim()
+                  .toLowerCase();
+                const isBlockCard =
+                  !String(item.telefone || "").trim() &&
+                  (!periodValue || periodValue === "bloqueio");
+                const isLunchCard = ["almoco", "almoço"].includes(periodValue);
+                const isDinnerCard = ["janta", "jantar"].includes(periodValue);
+                const cardTone = isBlockCard
+                  ? "border-[#c6c6c6] bg-[#efefef]"
+                  : isLunchCard
+                    ? "border-[#e9d38f] bg-[#fff5cf]"
+                    : isDinnerCard
+                      ? "border-[#f2b48a] bg-[#ffe3cf]"
+                      : "border-[var(--line)] bg-white/70";
                 const hasRemoveData = Boolean(
                   normalizeDateKey(item.dia) &&
-                    String(item.periodo || "").trim() &&
-                    String(item.telefone || "").trim()
+                    ((String(item.periodo || "").trim() &&
+                      String(item.telefone || "").trim()) ||
+                      !String(item.telefone || "").trim())
                 );
                 const isRemoving = isRemovingEvent === key;
                 return (
-                <div
-                  key={key}
-                  className="grid gap-3 rounded-2xl border border-[var(--line)] bg-white/70 p-4 md:grid-cols-[1fr_1fr_auto]"
+                  <div
+                    key={key}
+                  className={`grid gap-3 rounded-2xl border p-4 md:grid-cols-[1fr_1fr_auto] ${cardTone}`}
                 >
                   <div>
                     <p className="text-xs font-semibold uppercase text-[var(--muted)]">

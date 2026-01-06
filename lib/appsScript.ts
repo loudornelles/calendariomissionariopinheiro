@@ -126,3 +126,16 @@ export async function blockDate(payload: {
     }),
   });
 }
+
+export async function unblockDate(payload: {
+  dia: string;
+  adminNome: string;
+}) {
+  return callAppsScript<{}>("unblock-date", {
+    method: "POST",
+    body: toFormBody({
+      dia: payload.dia,
+      adminNome: payload.adminNome,
+    }),
+  });
+}
