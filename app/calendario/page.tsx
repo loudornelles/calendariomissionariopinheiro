@@ -1215,6 +1215,7 @@ function getLeadingBlanks(startsOn: number) {
 
 export default function CalendarioPage() {
   const router = useRouter();
+  const [isAdminView, setIsAdminView] = useState(false);
 
 
 
@@ -1398,6 +1399,9 @@ export default function CalendarioPage() {
 
 
     const storedPhone = localStorage.getItem("cm_telefone");
+    const storedAdminName = localStorage.getItem("cm_admin_nome");
+    const storedAdminPhone = localStorage.getItem("cm_admin_telefone");
+    setIsAdminView(Boolean(storedAdminName || storedAdminPhone));
 
 
 
@@ -2535,6 +2539,15 @@ export default function CalendarioPage() {
             >
               Meus agendamentos
             </button>
+            {isAdminView ? (
+              <button
+                type="button"
+                className="rounded-full border border-[var(--line)] bg-white px-5 py-2 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+                onClick={() => router.push("/admin")}
+              >
+                Voltar ao painel
+              </button>
+            ) : null}
 
 
 

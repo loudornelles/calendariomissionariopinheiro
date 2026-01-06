@@ -123,6 +123,7 @@ export default function AdminPage() {
         nome: trimmedName,
         telefone: trimmedPhone,
         timestamp,
+        admin: "admin",
       });
       if (!response.ok) {
         setBookingError(response.error || "Falha ao marcar a refeicao.");
@@ -312,13 +313,22 @@ export default function AdminPage() {
               Gerencie bloqueios e eventos do calendario dos missionarios.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="rounded-full border border-[var(--line)] bg-white px-5 py-2 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
-          >
-            Sair
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => router.push("/calendario")}
+              className="rounded-full border border-[var(--line)] bg-white px-5 py-2 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+            >
+              Ver calendario
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="rounded-full border border-[var(--line)] bg-white px-5 py-2 text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+            >
+              Sair
+            </button>
+          </div>
         </header>
 
         <section className="grid gap-6 lg:grid-cols-[1fr_1.3fr]">

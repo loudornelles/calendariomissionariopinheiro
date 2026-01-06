@@ -70,6 +70,7 @@ export async function bookEvent(payload: {
   nome: string;
   telefone: string;
   timestamp?: string;
+  admin?: string;
 }) {
   return callAppsScript<{}>("book", {
     method: "POST",
@@ -79,6 +80,7 @@ export async function bookEvent(payload: {
       nome: payload.nome,
       telefone: payload.telefone,
       timestamp: payload.timestamp,
+      admin: payload.admin,
     }),
   });
 }
@@ -87,6 +89,7 @@ export async function unbookEvent(payload: {
   dia: string;
   periodo: string;
   telefone: string;
+  admin?: string;
 }) {
   return callAppsScript<{}>("unbook", {
     method: "POST",
@@ -94,6 +97,7 @@ export async function unbookEvent(payload: {
       dia: payload.dia,
       periodo: payload.periodo,
       telefone: payload.telefone,
+      admin: payload.admin,
     }),
   });
 }
@@ -127,10 +131,7 @@ export async function blockDate(payload: {
   });
 }
 
-export async function unblockDate(payload: {
-  dia: string;
-  adminNome: string;
-}) {
+export async function unblockDate(payload: { dia: string; adminNome: string }) {
   return callAppsScript<{}>("unblock-date", {
     method: "POST",
     body: toFormBody({
