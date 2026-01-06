@@ -3751,6 +3751,7 @@ export default function CalendarioPage() {
 
 
                     type="button"
+                    disabled={selectedDay?.lunch !== "Livre"}
 
 
 
@@ -3790,7 +3791,7 @@ export default function CalendarioPage() {
 
 
 
-                    }`}
+                    } disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-[var(--line)] disabled:hover:text-[var(--muted)]`}
 
 
 
@@ -3839,6 +3840,7 @@ export default function CalendarioPage() {
 
 
                     type="button"
+                    disabled={selectedDay?.dinner !== "Livre"}
 
 
 
@@ -3878,7 +3880,7 @@ export default function CalendarioPage() {
 
 
 
-                    }`}
+                    } disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-[var(--line)] disabled:hover:text-[var(--muted)]`}
 
 
 
