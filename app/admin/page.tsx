@@ -20,6 +20,8 @@ const BLOCK_COLORS: Record<string, string> = {
 
 export default function AdminPage() {
   const router = useRouter();
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [blockType, setBlockType] = useState("P-Day");
   const [blockDateValue, setBlockDateValue] = useState("");
   const [blockReason, setBlockReason] = useState("");
@@ -142,8 +144,25 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
+    const storedAdminName = localStorage.getItem("cm_admin_nome");
+    const storedAdminPhone = localStorage.getItem("cm_admin_telefone");
+    const storedAdminCall = localStorage.getItem("cm_admin_chamado");
+    const isAdmin = Boolean(
+      storedAdminName || storedAdminPhone || storedAdminCall
+    );
+    setIsAuthorized(isAdmin);
+    setHasCheckedAuth(true);
+    if (!isAdmin) {
+      router.replace("/");
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAuthorized) {
+      return;
+    }
     loadEvents();
-  }, []);
+  }, [isAuthorized]);
 
   const formatLocalDate = (date: Date) => {
     const year = date.getFullYear();
@@ -289,6 +308,10 @@ export default function AdminPage() {
     localStorage.removeItem("cm_admin_telefone");
     router.push("/");
   };
+
+  if (!hasCheckedAuth || !isAuthorized) {
+    return null;
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden">

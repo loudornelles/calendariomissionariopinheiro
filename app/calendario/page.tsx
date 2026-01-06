@@ -1870,6 +1870,8 @@ export default function CalendarioPage() {
   const dinnerEvent = selectedDayEvents.find(
     (event) => getPeriodType(event.periodo) === "dinner"
   );
+  const lunchPhone = lunchEvent?.telefone?.trim() || "";
+  const dinnerPhone = dinnerEvent?.telefone?.trim() || "";
   const ownsSelectedLunch =
     !!selectedDay &&
     !!memberPhoneKey &&
@@ -3646,6 +3648,11 @@ export default function CalendarioPage() {
                     Almoço:{" "}
                     <span className="font-semibold text-[var(--ink)]">
                       {selectedDay.lunch}
+                      {isAdminView && lunchPhone ? (
+                        <span className="ml-2 text-xs font-semibold text-[var(--muted)]">
+                          {lunchPhone}
+                        </span>
+                      ) : null}
                     </span>
                   </p>
                   {ownsSelectedLunch ? (
@@ -3669,6 +3676,11 @@ export default function CalendarioPage() {
                     Jantar:{" "}
                     <span className="font-semibold text-[var(--ink)]">
                       {selectedDay.dinner}
+                      {isAdminView && dinnerPhone ? (
+                        <span className="ml-2 text-xs font-semibold text-[var(--muted)]">
+                          {dinnerPhone}
+                        </span>
+                      ) : null}
                     </span>
                   </p>
                   {ownsSelectedDinner ? (
