@@ -1401,54 +1401,25 @@ export default function CalendarioPage() {
     const storedPhone = localStorage.getItem("cm_telefone");
     const storedAdminName = localStorage.getItem("cm_admin_nome");
     const storedAdminPhone = localStorage.getItem("cm_admin_telefone");
-    setIsAdminView(Boolean(storedAdminName || storedAdminPhone));
+    const hasAdminData = Boolean(storedAdminName || storedAdminPhone);
+    setIsAdminView(hasAdminData);
 
-
-
-
-
-
-
-    if (storedName) {
-
-
-
-
-
-
-
-      setMemberName(storedName);
-
-
-
-
-
-
-
+    if (hasAdminData) {
+      if (storedAdminName) {
+        setMemberName(storedAdminName);
+      }
+      if (storedAdminPhone) {
+        setMemberPhone(storedAdminPhone);
+      }
+      return;
     }
 
-
-
-
-
-
+    if (storedName) {
+      setMemberName(storedName);
+    }
 
     if (storedPhone) {
-
-
-
-
-
-
-
       setMemberPhone(storedPhone);
-
-
-
-
-
-
-
     }
 
 
