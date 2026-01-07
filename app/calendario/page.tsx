@@ -31,6 +31,7 @@ import {
   type AppEvent,
 } from "../../lib/appsScript";
 import {
+  buildWhatsappLink,
   formatPhoneDisplay,
   normalizePhoneForRequest,
   normalizePhoneKey,
@@ -303,24 +304,6 @@ const statusStyles: Record<DayInfo["status"], string> = {
 
 
 };
-
-const WHATSAPP_LINK_TEMPLATE = "https://wa.me/TELEFONE?text=DATAEPERIODO";
-
-function buildWhatsappLink(
-  phone: string,
-  dateLabel: string,
-  periodLabel: string
-) {
-  const digits = phone.replace(/\D/g, "");
-  if (!digits) {
-    return "";
-  }
-  const message = `${dateLabel} - ${periodLabel}`;
-  return WHATSAPP_LINK_TEMPLATE.replace("TELEFONE", digits).replace(
-    "DATAEPERIODO",
-    encodeURIComponent(message)
-  );
-}
 
 
 
@@ -4209,16 +4192,14 @@ export default function CalendarioPage() {
               </h4>
 
               <div className="mt-4 space-y-3 text-sm text-[var(--muted)]">
-                <div className="rounded-2xl border border-[var(--line)] bg-white/70 p-3">
+                <div className="rounded-2xl border border-[var(--line)]  p-3">
                   <p className="text-xs font-semibold uppercase text-[var(--muted)]">
                     Nome
                   </p>
                   <p className="text-base font-semibold text-[var(--ink)]">
                     {memberName}
                   </p>
-                </div>
-
-                <div className="rounded-2xl border border-[var(--line)] bg-white/70 p-3">
+                  <br />
                   <p className="text-xs font-semibold uppercase text-[var(--muted)]">
                     Telefone
                   </p>

@@ -14,6 +14,7 @@ import {
 import {
   DEFAULT_DDD,
   DDD_OPTIONS,
+  buildWhatsappLink,
   formatPhoneInput,
   normalizePhone,
   normalizePhoneForRequest,
@@ -572,6 +573,14 @@ export default function AdminPage() {
                     : isDinnerCard
                       ? "border-[#f2b48a] bg-[#ffe3cf]"
                       : "border-[var(--line)] bg-white/70";
+                const phoneValue = String(item.telefone || "").trim();
+                const whatsappLink = phoneValue
+                  ? buildWhatsappLink(
+                      phoneValue,
+                      formatEventDate(item.dia),
+                      formatPeriodLabel(item.periodo)
+                    )
+                  : "";
                 const hasRemoveData = Boolean(
                   normalizeDateKey(item.dia) &&
                     ((String(item.periodo || "").trim() &&
@@ -600,7 +609,24 @@ export default function AdminPage() {
                     <p className="text-base font-semibold text-[var(--ink)]">
                       {item.nome}
                     </p>
-                    <p>{item.telefone || "Sem telefone"}</p>
+                    <p>
+                      {phoneValue ? (
+                        whatsappLink ? (
+                          <a
+                            href={whatsappLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[var(--muted)] underline underline-offset-2 hover:text-[var(--accent-strong)]"
+                          >
+                            {phoneValue}
+                          </a>
+                        ) : (
+                          <span>{phoneValue}</span>
+                        )
+                      ) : (
+                        "Sem telefone"
+                      )}
+                    </p>
                   </div>
                   <button
                     type="button"

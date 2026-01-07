@@ -5,6 +5,24 @@ const DDD_PHONE_DIGIT_COUNT = DDD_DIGIT_COUNT + LOCAL_PHONE_DIGIT_COUNT;
 
 const onlyDigits = (value: string) => value.replace(/\D/g, "");
 
+export const WHATSAPP_LINK_TEMPLATE = "https://wa.me/TELEFONE?text=DATAEPERIODO";
+
+export const buildWhatsappLink = (
+  phone: string,
+  dateLabel: string,
+  periodLabel: string
+) => {
+  const digits = onlyDigits(phone);
+  if (!digits) {
+    return "";
+  }
+  const message = `${dateLabel} - ${periodLabel}`;
+  return WHATSAPP_LINK_TEMPLATE.replace("TELEFONE", digits).replace(
+    "DATAEPERIODO",
+    encodeURIComponent(message)
+  );
+};
+
 const formatLocalPhone = (digits: string) => {
   const trimmed = digits.slice(0, LOCAL_PHONE_DIGIT_COUNT);
   if (!trimmed) {
