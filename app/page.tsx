@@ -162,24 +162,6 @@ export default function Home() {
             >
               <div className="space-y-2">
                 <label
-                  htmlFor="calendar-username"
-                  className="text-sm font-semibold text-[var(--ink)]"
-                >
-                  Nome completo
-                </label>
-                <input
-                  type="text"
-                  id="calendar-username"
-                  name="username"
-                  autoComplete="username"
-                  placeholder="Ex.: Maria Fernandes"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
-                />
-              </div>
-              <div className="space-y-2">
-                <label
                   htmlFor="calendar-password"
                   className="text-sm font-semibold text-[var(--ink)]"
                 >
@@ -222,6 +204,24 @@ export default function Home() {
                     className="absolute -left-[9999px] h-0 w-0 overflow-hidden"
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <label
+                  htmlFor="calendar-username"
+                  className="text-sm font-semibold text-[var(--ink)]"
+                >
+                  Nome completo
+                </label>
+                <input
+                  type="text"
+                  id="calendar-username"
+                  name="username"
+                  autoComplete="username"
+                  placeholder="Ex.: Maria Fernandes"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
+                />
               </div>
               <button
                 type="submit"
