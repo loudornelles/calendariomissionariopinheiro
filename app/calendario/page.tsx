@@ -3278,7 +3278,7 @@ export default function CalendarioPage() {
                                   <button
                                     type="button"
                                     disabled={lunchBusy}
-                                    className="hidden rounded-full border border-[var(--line)] bg-white/70 px-2 py-0.5 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70 sm:inline-flex sm:text-[9px] shrink-0"
+                                    className="hidden rounded-full border border-[var(--line)] bg-white/70 px-2 py-0.5 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:bg-[#cfe0f7] disabled:border-[#b6cbe8] disabled:text-[#2a4562] sm:inline-flex sm:text-[9px] shrink-0"
                                     onClick={(event) => {
                                       event.stopPropagation();
                                       handleUnbook({
@@ -3319,7 +3319,7 @@ export default function CalendarioPage() {
                                   <button
                                     type="button"
                                     disabled={dinnerBusy}
-                                    className="hidden rounded-full border border-[var(--line)] bg-white/70 px-2 py-0.5 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70 sm:inline-flex sm:text-[9px] shrink-0"
+                                    className="hidden rounded-full border border-[var(--line)] bg-white/70 px-2 py-0.5 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:bg-[#cfe0f7] disabled:border-[#b6cbe8] disabled:text-[#2a4562] sm:inline-flex sm:text-[9px] shrink-0"
                                     onClick={(event) => {
                                       event.stopPropagation();
                                       handleUnbook({
@@ -3689,7 +3689,7 @@ export default function CalendarioPage() {
                     <button
                       type="button"
                       disabled={modalLunchBusy}
-                      className="rounded-full border border-[var(--line)] bg-white/70 px-3 py-1 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70"
+                      className="rounded-full border border-[var(--line)] bg-white/70 px-3 py-1 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:bg-[#cfe0f7] disabled:border-[#b6cbe8] disabled:text-[#2a4562]"
                       onClick={() =>
                         handleUnbook({
                           dia: selectedDay.dateKey,
@@ -3728,7 +3728,7 @@ export default function CalendarioPage() {
                     <button
                       type="button"
                       disabled={modalDinnerBusy}
-                      className="rounded-full border border-[var(--line)] bg-white/70 px-3 py-1 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70"
+                      className="rounded-full border border-[var(--line)] bg-white/70 px-3 py-1 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:bg-[#cfe0f7] disabled:border-[#b6cbe8] disabled:text-[#2a4562]"
                       onClick={() =>
                         handleUnbook({
                           dia: selectedDay.dateKey,
@@ -4247,7 +4247,7 @@ export default function CalendarioPage() {
                           <button
                             type="button"
                             disabled={!canUnbook || busy}
-                            className="rounded-full border border-[var(--line)] bg-white/70 px-3 py-1 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-70"
+                            className="rounded-full border border-[var(--line)] bg-white/70 px-3 py-1 text-[10px] font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:cursor-not-allowed disabled:bg-[#cfe0f7] disabled:border-[#b6cbe8] disabled:text-[#2a4562]"
                             onClick={() =>
                               handleUnbook(
                                 {
