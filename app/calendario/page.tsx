@@ -304,6 +304,24 @@ const statusStyles: Record<DayInfo["status"], string> = {
 
 };
 
+const WHATSAPP_LINK_TEMPLATE = "https://wa.me/TELEFONE?text=DATAEPERIODO";
+
+function buildWhatsappLink(
+  phone: string,
+  dateLabel: string,
+  periodLabel: string
+) {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) {
+    return "";
+  }
+  const message = `${dateLabel} - ${periodLabel}`;
+  return WHATSAPP_LINK_TEMPLATE.replace("TELEFONE", digits).replace(
+    "DATAEPERIODO",
+    encodeURIComponent(message)
+  );
+}
+
 
 
 
@@ -1905,6 +1923,14 @@ export default function CalendarioPage() {
   const modalDinnerBusy = selectedDay
     ? isUnbooking === `${selectedDay.dateKey}-janta`
     : false;
+  const lunchWhatsappLink =
+    selectedDay && lunchPhone
+      ? buildWhatsappLink(lunchPhone, selectedDay.dateLabel, "Almoco")
+      : "";
+  const dinnerWhatsappLink =
+    selectedDay && dinnerPhone
+      ? buildWhatsappLink(dinnerPhone, selectedDay.dateLabel, "Jantar")
+      : "";
 
 
 
@@ -3666,9 +3692,20 @@ export default function CalendarioPage() {
                     <span className="font-semibold text-[var(--ink)]">
                       {selectedDay.lunch}
                       {isAdminView && lunchPhone ? (
-                        <span className="ml-2 text-xs font-semibold text-[var(--muted)]">
-                          {lunchPhone}
-                        </span>
+                        lunchWhatsappLink ? (
+                          <a
+                            href={lunchWhatsappLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="ml-2 text-xs font-semibold text-[var(--muted)] underline underline-offset-2 hover:text-[var(--accent-strong)]"
+                          >
+                            {lunchPhone}
+                          </a>
+                        ) : (
+                          <span className="ml-2 text-xs font-semibold text-[var(--muted)]">
+                            {lunchPhone}
+                          </span>
+                        )
                       ) : null}
                     </span>
                   </p>
@@ -3694,9 +3731,20 @@ export default function CalendarioPage() {
                     <span className="font-semibold text-[var(--ink)]">
                       {selectedDay.dinner}
                       {isAdminView && dinnerPhone ? (
-                        <span className="ml-2 text-xs font-semibold text-[var(--muted)]">
-                          {dinnerPhone}
-                        </span>
+                        dinnerWhatsappLink ? (
+                          <a
+                            href={dinnerWhatsappLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="ml-2 text-xs font-semibold text-[var(--muted)] underline underline-offset-2 hover:text-[var(--accent-strong)]"
+                          >
+                            {dinnerPhone}
+                          </a>
+                        ) : (
+                          <span className="ml-2 text-xs font-semibold text-[var(--muted)]">
+                            {dinnerPhone}
+                          </span>
+                        )
                       ) : null}
                     </span>
                   </p>
