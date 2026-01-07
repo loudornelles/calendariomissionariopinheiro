@@ -134,13 +134,23 @@ export default function Home() {
                 Informe seu nome e telefone para entrar.
               </p>
             </div>
-            <form className="space-y-4" onSubmit={handleSubmit}>
+            <form
+              className="space-y-4"
+              onSubmit={handleSubmit}
+              autoComplete="on"
+            >
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-[var(--ink)]">
+                <label
+                  htmlFor="calendar-username"
+                  className="text-sm font-semibold text-[var(--ink)]"
+                >
                   Nome completo
                 </label>
                 <input
                   type="text"
+                  id="calendar-username"
+                  name="username"
+                  autoComplete="username"
                   placeholder="Ex.: Maria Fernandes"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
@@ -148,7 +158,10 @@ export default function Home() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-[var(--ink)]">
+                <label
+                  htmlFor="calendar-password"
+                  className="text-sm font-semibold text-[var(--ink)]"
+                >
                   Telefone (WhatsApp)
                 </label>
                 <div className="flex gap-3">
@@ -166,6 +179,10 @@ export default function Home() {
                   </select>
                   <input
                     type="tel"
+                    id="calendar-password"
+                    name="password"
+                    autoComplete="current-password"
+                    inputMode="numeric"
                     placeholder={PHONE_PLACEHOLDER}
                     value={phone}
                     onChange={(event) =>
