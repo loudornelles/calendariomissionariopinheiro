@@ -2476,7 +2476,7 @@ export default function CalendarioPage() {
 
 
 
-              marcar.
+              marcar uma refeição.
 
 
 
