@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { adminLogin } from "@/lib/appsScript";
+import { formatPhoneInput, normalizePhone, PHONE_PLACEHOLDER } from "@/lib/phone";
 
 export default function Home() {
   const router = useRouter();
@@ -18,12 +19,12 @@ export default function Home() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmedName = name.trim();
-    const trimmedPhone = phone.trim();
-    if (!trimmedName || !trimmedPhone) {
+    const formattedPhone = normalizePhone(phone);
+    if (!trimmedName || !formattedPhone) {
       return;
     }
     localStorage.setItem("cm_nome", trimmedName);
-    localStorage.setItem("cm_telefone", trimmedPhone);
+    localStorage.setItem("cm_telefone", formattedPhone);
     router.push("/calendario");
   };
 
@@ -35,9 +36,9 @@ export default function Home() {
 
   const handleAdminSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const trimmedPhone = adminPhone.trim();
+    const formattedPhone = normalizePhone(adminPhone);
     const trimmedPassword = adminPassword.trim();
-    if (!trimmedPhone || !trimmedPassword) {
+    if (!formattedPhone || !trimmedPassword) {
       setAdminError("Informe telefone e senha.");
       return;
     }
@@ -45,7 +46,7 @@ export default function Home() {
     setAdminError("");
     try {
       const response = await adminLogin({
-        telefone: trimmedPhone,
+        telefone: formattedPhone,
         senha: trimmedPassword,
       });
       if (!response.ok) {
@@ -55,7 +56,10 @@ export default function Home() {
       if (response.admin) {
         localStorage.setItem("cm_admin_nome", response.admin.nome);
         localStorage.setItem("cm_admin_chamado", response.admin.chamado);
-        localStorage.setItem("cm_admin_telefone", response.admin.telefone);
+        localStorage.setItem(
+          "cm_admin_telefone",
+          normalizePhone(response.admin.telefone) || formattedPhone
+        );
       }
       handleAdminClose();
       router.push("/admin");
@@ -138,13 +142,15 @@ export default function Home() {
                 <label className="text-sm font-semibold text-[var(--ink)]">
                   Telefone (WhatsApp)
                 </label>
-                <input
-                  type="tel"
-                  placeholder="(11) 99999-9999"
-                  value={phone}
-                  onChange={(event) => setPhone(event.target.value)}
-                  className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
-                />
+                  <input
+                    type="tel"
+                    placeholder={PHONE_PLACEHOLDER}
+                    value={phone}
+                    onChange={(event) =>
+                      setPhone(formatPhoneInput(event.target.value))
+                    }
+                    className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
+                  />
               </div>
               <button
                 type="submit"
@@ -223,9 +229,11 @@ export default function Home() {
                 </label>
                 <input
                   type="tel"
-                  placeholder="(11) 99999-9999"
+                  placeholder={PHONE_PLACEHOLDER}
                   value={adminPhone}
-                  onChange={(event) => setAdminPhone(event.target.value)}
+                  onChange={(event) =>
+                    setAdminPhone(formatPhoneInput(event.target.value))
+                  }
                   className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
                 />
               </div>

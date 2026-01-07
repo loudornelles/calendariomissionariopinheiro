@@ -11,6 +11,7 @@ import {
   unbookEvent,
   type AppEvent,
 } from "@/lib/appsScript";
+import { formatPhoneInput, normalizePhone, PHONE_PLACEHOLDER } from "@/lib/phone";
 
 const BLOCK_COLORS: Record<string, string> = {
   "P-Day": "#2a2a2a",
@@ -78,6 +79,7 @@ export default function AdminPage() {
     try {
       const response = await blockDate({
         dia: trimmedDate,
+        periodo: "bloqueio",
         nome: blockName,
         cor: BLOCK_COLORS[blockType] ?? "#6b7280",
       });
@@ -105,8 +107,8 @@ export default function AdminPage() {
     }
     const trimmedDate = bookingDateValue.trim();
     const trimmedName = bookingName.trim();
-    const trimmedPhone = bookingPhone.trim();
-    if (!trimmedDate || !trimmedName || !trimmedPhone) {
+    const formattedPhone = normalizePhone(bookingPhone);
+    if (!trimmedDate || !trimmedName || !formattedPhone) {
       setBookingError("Informe data, nome e telefone.");
       setBookingSuccess(null);
       return;
@@ -123,7 +125,7 @@ export default function AdminPage() {
         dia: trimmedDate,
         periodo: bookingPeriod,
         nome: trimmedName,
-        telefone: trimmedPhone,
+        telefone: formattedPhone,
         timestamp,
         admin: "admin",
       });
@@ -479,9 +481,11 @@ export default function AdminPage() {
                   </label>
                   <input
                     type="tel"
-                    placeholder="(11) 99999-9999"
+                    placeholder={PHONE_PLACEHOLDER}
                     value={bookingPhone}
-                    onChange={(event) => setBookingPhone(event.target.value)}
+                    onChange={(event) =>
+                      setBookingPhone(formatPhoneInput(event.target.value))
+                    }
                     className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
                   />
                 </div>
