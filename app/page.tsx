@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { adminLogin } from "@/lib/appsScript";
 import {
@@ -24,11 +24,29 @@ export default function Home() {
   const [adminPassword, setAdminPassword] = useState("");
   const [adminError, setAdminError] = useState("");
   const [isAdminSubmitting, setIsAdminSubmitting] = useState(false);
+  const passwordMirrorRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!passwordMirrorRef.current) {
+      return;
+    }
+    if (passwordMirrorRef.current.value !== phone) {
+      passwordMirrorRef.current.value = phone;
+    }
+  }, [phone]);
+
+  const syncPhoneFromMirror = () => {
+    const mirrorValue = passwordMirrorRef.current?.value ?? "";
+    if (mirrorValue && mirrorValue !== phone) {
+      setPhone(formatPhoneInput(mirrorValue));
+    }
+  };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmedName = name.trim();
-    const formattedPhone = normalizePhone(phoneDdd, phone);
+    const mirrorPhone = passwordMirrorRef.current?.value || phone;
+    const formattedPhone = normalizePhone(phoneDdd, mirrorPhone);
     if (!trimmedName || !formattedPhone) {
       return;
     }
@@ -180,15 +198,25 @@ export default function Home() {
                   <input
                     type="tel"
                     id="calendar-password"
-                    name="password"
+                    name="password-visible"
                     autoComplete="current-password"
                     inputMode="numeric"
                     placeholder={PHONE_PLACEHOLDER}
                     value={phone}
+                    onFocus={syncPhoneFromMirror}
                     onChange={(event) =>
                       setPhone(formatPhoneInput(event.target.value))
                     }
                     className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
+                  />
+                  <input
+                    ref={passwordMirrorRef}
+                    type="password"
+                    name="password"
+                    autoComplete="current-password"
+                    onInput={syncPhoneFromMirror}
+                    tabIndex={-1}
+                    className="absolute -left-[9999px] h-0 w-0 overflow-hidden"
                   />
                 </div>
               </div>
