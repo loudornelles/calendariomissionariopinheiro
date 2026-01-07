@@ -50,6 +50,9 @@ export default function Home() {
     if (!trimmedName || !formattedPhone) {
       return;
     }
+    localStorage.removeItem("cm_admin_nome");
+    localStorage.removeItem("cm_admin_chamado");
+    localStorage.removeItem("cm_admin_telefone");
     localStorage.setItem("cm_nome", trimmedName);
     localStorage.setItem("cm_telefone", formattedPhone);
     router.push("/calendario");

@@ -2278,6 +2278,9 @@ export default function CalendarioPage() {
   const handleLogout = () => {
     localStorage.removeItem("cm_nome");
     localStorage.removeItem("cm_telefone");
+    localStorage.removeItem("cm_admin_nome");
+    localStorage.removeItem("cm_admin_chamado");
+    localStorage.removeItem("cm_admin_telefone");
     router.push("/");
   };
 
