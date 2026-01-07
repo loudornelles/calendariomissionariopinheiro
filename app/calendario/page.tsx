@@ -197,7 +197,7 @@ type MonthInfo = {
 const monthNames = [
   "Janeiro",
   "Fevereiro",
-  "Mar?o",
+  "Março",
   "Abril",
   "Maio",
   "Junho",
