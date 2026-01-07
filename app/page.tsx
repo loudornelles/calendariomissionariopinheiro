@@ -4,14 +4,23 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { adminLogin } from "@/lib/appsScript";
-import { formatPhoneInput, normalizePhone, PHONE_PLACEHOLDER } from "@/lib/phone";
+import {
+  DEFAULT_DDD,
+  DDD_OPTIONS,
+  formatPhoneInput,
+  normalizePhone,
+  normalizePhoneForRequest,
+  PHONE_PLACEHOLDER,
+} from "@/lib/phone";
 
 export default function Home() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneDdd, setPhoneDdd] = useState(DEFAULT_DDD);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [adminPhone, setAdminPhone] = useState("");
+  const [adminPhoneDdd, setAdminPhoneDdd] = useState(DEFAULT_DDD);
   const [adminPassword, setAdminPassword] = useState("");
   const [adminError, setAdminError] = useState("");
   const [isAdminSubmitting, setIsAdminSubmitting] = useState(false);
@@ -19,7 +28,7 @@ export default function Home() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmedName = name.trim();
-    const formattedPhone = normalizePhone(phone);
+    const formattedPhone = normalizePhone(phoneDdd, phone);
     if (!trimmedName || !formattedPhone) {
       return;
     }
@@ -36,7 +45,7 @@ export default function Home() {
 
   const handleAdminSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formattedPhone = normalizePhone(adminPhone);
+    const formattedPhone = normalizePhone(adminPhoneDdd, adminPhone);
     const trimmedPassword = adminPassword.trim();
     if (!formattedPhone || !trimmedPassword) {
       setAdminError("Informe telefone e senha.");
@@ -58,7 +67,7 @@ export default function Home() {
         localStorage.setItem("cm_admin_chamado", response.admin.chamado);
         localStorage.setItem(
           "cm_admin_telefone",
-          normalizePhone(response.admin.telefone) || formattedPhone
+          normalizePhoneForRequest(response.admin.telefone) || formattedPhone
         );
       }
       handleAdminClose();
@@ -142,6 +151,19 @@ export default function Home() {
                 <label className="text-sm font-semibold text-[var(--ink)]">
                   Telefone (WhatsApp)
                 </label>
+                <div className="flex gap-3">
+                  <select
+                    aria-label="DDD"
+                    value={phoneDdd}
+                    onChange={(event) => setPhoneDdd(event.target.value)}
+                    className="w-24 rounded-2xl border border-[var(--line)] bg-white px-3 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
+                  >
+                    {DDD_OPTIONS.map((ddd) => (
+                      <option key={ddd} value={ddd}>
+                        {ddd}
+                      </option>
+                    ))}
+                  </select>
                   <input
                     type="tel"
                     placeholder={PHONE_PLACEHOLDER}
@@ -151,6 +173,7 @@ export default function Home() {
                     }
                     className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
                   />
+                </div>
               </div>
               <button
                 type="submit"
@@ -227,15 +250,29 @@ export default function Home() {
                 <label className="text-sm font-semibold text-[var(--ink)]">
                   Telefone
                 </label>
-                <input
-                  type="tel"
-                  placeholder={PHONE_PLACEHOLDER}
-                  value={adminPhone}
-                  onChange={(event) =>
-                    setAdminPhone(formatPhoneInput(event.target.value))
-                  }
-                  className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
-                />
+                <div className="flex gap-3">
+                  <select
+                    aria-label="DDD"
+                    value={adminPhoneDdd}
+                    onChange={(event) => setAdminPhoneDdd(event.target.value)}
+                    className="w-24 rounded-2xl border border-[var(--line)] bg-white px-3 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
+                  >
+                    {DDD_OPTIONS.map((ddd) => (
+                      <option key={ddd} value={ddd}>
+                        {ddd}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="tel"
+                    placeholder={PHONE_PLACEHOLDER}
+                    value={adminPhone}
+                    onChange={(event) =>
+                      setAdminPhone(formatPhoneInput(event.target.value))
+                    }
+                    className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-[var(--ink)]">

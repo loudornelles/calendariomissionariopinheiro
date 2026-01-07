@@ -30,6 +30,11 @@ import {
   unbookEvent,
   type AppEvent,
 } from "../../lib/appsScript";
+import {
+  formatPhoneDisplay,
+  normalizePhoneForRequest,
+  normalizePhoneKey,
+} from "@/lib/phone";
 
 
 
@@ -1319,7 +1324,7 @@ export default function CalendarioPage() {
 
 
 
-  const [memberPhone, setMemberPhone] = useState("(00) 00000-0000");
+  const [memberPhone, setMemberPhone] = useState("");
 
 
 
@@ -1403,13 +1408,22 @@ export default function CalendarioPage() {
     const storedAdminPhone = localStorage.getItem("cm_admin_telefone");
     const hasAdminData = Boolean(storedAdminName || storedAdminPhone);
     setIsAdminView(hasAdminData);
+    const normalizedAdminPhone = storedAdminPhone
+      ? normalizePhoneForRequest(storedAdminPhone)
+      : "";
+    const normalizedMemberPhone = storedPhone
+      ? normalizePhoneForRequest(storedPhone)
+      : "";
 
     if (hasAdminData) {
       if (storedAdminName) {
         setMemberName(storedAdminName);
       }
-      if (storedAdminPhone) {
-        setMemberPhone(storedAdminPhone);
+      if (normalizedAdminPhone) {
+        setMemberPhone(normalizedAdminPhone);
+        if (storedAdminPhone !== normalizedAdminPhone) {
+          localStorage.setItem("cm_admin_telefone", normalizedAdminPhone);
+        }
       }
       return;
     }
@@ -1418,8 +1432,11 @@ export default function CalendarioPage() {
       setMemberName(storedName);
     }
 
-    if (storedPhone) {
-      setMemberPhone(storedPhone);
+    if (normalizedMemberPhone) {
+      setMemberPhone(normalizedMemberPhone);
+      if (storedPhone !== normalizedMemberPhone) {
+        localStorage.setItem("cm_telefone", normalizedMemberPhone);
+      }
     }
 
 
@@ -1632,12 +1649,11 @@ export default function CalendarioPage() {
 
   const loadMemberEvents = async () => {
     const trimmedName = memberName.trim();
-    const trimmedPhone = memberPhone.trim();
+    const phoneRequest = normalizePhoneForRequest(memberPhone);
     if (
       !trimmedName ||
-      !trimmedPhone ||
-      trimmedName === "Visitante" ||
-      trimmedPhone === "(00) 00000-0000"
+      !phoneRequest ||
+      trimmedName === "Visitante"
     ) {
       setMemberEvents([]);
       setMemberEventsError("Preencha nome e telefone na pagina inicial.");
@@ -1648,7 +1664,7 @@ export default function CalendarioPage() {
     try {
       const response = await getByMember({
         nome: trimmedName,
-        telefone: trimmedPhone,
+        telefone: phoneRequest,
       });
       if (!response.ok) {
         setMemberEvents([]);
@@ -1676,8 +1692,8 @@ export default function CalendarioPage() {
     if (isUnbooking) {
       return false;
     }
-    const trimmedPhone = memberPhone.trim();
-    if (!trimmedPhone || trimmedPhone === "(00) 00000-0000") {
+    const phoneRequest = normalizePhoneForRequest(memberPhone);
+    if (!phoneRequest) {
       const reportError = options?.onError ?? setEventsError;
       reportError("Preencha nome e telefone na pagina inicial.");
       return false;
@@ -1689,7 +1705,7 @@ export default function CalendarioPage() {
       const response = await unbookEvent({
         dia: payload.dia,
         periodo: payload.periodo,
-        telefone: trimmedPhone,
+        telefone: phoneRequest,
       });
       if (!response.ok) {
         reportError(response.error || "Falha ao desmarcar.");
@@ -1860,7 +1876,8 @@ export default function CalendarioPage() {
 
   }, [events]);
 
-  const memberPhoneKey = memberPhone.trim();
+  const memberPhoneKey = normalizePhoneKey(memberPhone);
+  const memberPhoneDisplay = formatPhoneDisplay(memberPhone);
   const selectedDayEvents = selectedDay
     ? eventsByDate.get(selectedDay.dateKey) ?? []
     : [];
@@ -1872,14 +1889,16 @@ export default function CalendarioPage() {
   );
   const lunchPhone = lunchEvent?.telefone?.trim() || "";
   const dinnerPhone = dinnerEvent?.telefone?.trim() || "";
+  const lunchPhoneKey = normalizePhoneKey(lunchPhone);
+  const dinnerPhoneKey = normalizePhoneKey(dinnerPhone);
   const ownsSelectedLunch =
     !!selectedDay &&
     !!memberPhoneKey &&
-    lunchEvent?.telefone?.trim() === memberPhoneKey;
+    lunchPhoneKey === memberPhoneKey;
   const ownsSelectedDinner =
     !!selectedDay &&
     !!memberPhoneKey &&
-    dinnerEvent?.telefone?.trim() === memberPhoneKey;
+    dinnerPhoneKey === memberPhoneKey;
   const modalLunchBusy = selectedDay
     ? isUnbooking === `${selectedDay.dateKey}-almoço`
     : false;
@@ -2086,13 +2105,8 @@ export default function CalendarioPage() {
       return;
     }
     const trimmedName = memberName.trim();
-    const trimmedPhone = memberPhone.trim();
-    if (
-      !trimmedName ||
-      !trimmedPhone ||
-      trimmedName === "Visitante" ||
-      trimmedPhone === "(00) 00000-0000"
-    ) {
+    const phoneRequest = normalizePhoneForRequest(memberPhone);
+    if (!trimmedName || !phoneRequest || trimmedName === "Visitante") {
       setModalError("Preencha nome e telefone na pagina inicial.");
       return;
     }
@@ -2115,7 +2129,7 @@ export default function CalendarioPage() {
 
 
 
-      telefone: trimmedPhone,
+      telefone: phoneRequest,
 
 
 
@@ -3080,9 +3094,12 @@ export default function CalendarioPage() {
                           monthIndex,
                           day.day
                         );
-                        const memberPhoneKey = memberPhone.trim();
-                        const lunchPhoneKey = (day.lunchPhone || "").trim();
-                        const dinnerPhoneKey = (day.dinnerPhone || "").trim();
+                        const lunchPhoneKey = normalizePhoneKey(
+                          day.lunchPhone || ""
+                        );
+                        const dinnerPhoneKey = normalizePhoneKey(
+                          day.dinnerPhone || ""
+                        );
                         const ownsLunch =
                           day.lunch !== "Livre" &&
                           memberPhoneKey &&
@@ -3610,7 +3627,7 @@ export default function CalendarioPage() {
 
 
 
-                    {memberPhone}
+                    {memberPhoneDisplay}
 
 
 
@@ -4158,7 +4175,7 @@ export default function CalendarioPage() {
                     Telefone
                   </p>
                   <p className="text-base font-semibold text-[var(--ink)]">
-                    {memberPhone}
+                    {memberPhoneDisplay}
                   </p>
                 </div>
               </div>

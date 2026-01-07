@@ -11,7 +11,14 @@ import {
   unbookEvent,
   type AppEvent,
 } from "@/lib/appsScript";
-import { formatPhoneInput, normalizePhone, PHONE_PLACEHOLDER } from "@/lib/phone";
+import {
+  DEFAULT_DDD,
+  DDD_OPTIONS,
+  formatPhoneInput,
+  normalizePhone,
+  normalizePhoneForRequest,
+  PHONE_PLACEHOLDER,
+} from "@/lib/phone";
 
 const BLOCK_COLORS: Record<string, string> = {
   "P-Day": "#2a2a2a",
@@ -35,6 +42,7 @@ export default function AdminPage() {
   );
   const [bookingName, setBookingName] = useState("");
   const [bookingPhone, setBookingPhone] = useState("");
+  const [bookingDdd, setBookingDdd] = useState(DEFAULT_DDD);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState<string | null>(null);
   const [isBooking, setIsBooking] = useState(false);
@@ -107,7 +115,7 @@ export default function AdminPage() {
     }
     const trimmedDate = bookingDateValue.trim();
     const trimmedName = bookingName.trim();
-    const formattedPhone = normalizePhone(bookingPhone);
+    const formattedPhone = normalizePhone(bookingDdd, bookingPhone);
     if (!trimmedDate || !trimmedName || !formattedPhone) {
       setBookingError("Informe data, nome e telefone.");
       setBookingSuccess(null);
@@ -268,7 +276,9 @@ export default function AdminPage() {
     }
     const dia = normalizeDateKey(eventItem.dia);
     const periodo = String(eventItem.periodo || "").trim().toLowerCase();
-    const telefone = String(eventItem.telefone || "").trim();
+    const telefone = normalizePhoneForRequest(
+      String(eventItem.telefone || "")
+    );
     setIsRemovingEvent(key);
     setEventsError(null);
     try {
@@ -479,15 +489,29 @@ export default function AdminPage() {
                   <label className="text-sm font-semibold text-[var(--ink)]">
                     Telefone
                   </label>
-                  <input
-                    type="tel"
-                    placeholder={PHONE_PLACEHOLDER}
-                    value={bookingPhone}
-                    onChange={(event) =>
-                      setBookingPhone(formatPhoneInput(event.target.value))
-                    }
-                    className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
-                  />
+                  <div className="flex gap-3">
+                    <select
+                      aria-label="DDD"
+                      value={bookingDdd}
+                      onChange={(event) => setBookingDdd(event.target.value)}
+                      className="w-24 rounded-2xl border border-[var(--line)] bg-white px-3 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
+                    >
+                      {DDD_OPTIONS.map((ddd) => (
+                        <option key={ddd} value={ddd}>
+                          {ddd}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="tel"
+                      placeholder={PHONE_PLACEHOLDER}
+                      value={bookingPhone}
+                      onChange={(event) =>
+                        setBookingPhone(formatPhoneInput(event.target.value))
+                      }
+                      className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-base text-[var(--ink)] shadow-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"
+                    />
+                  </div>
                 </div>
                 {bookingError ? (
                   <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
