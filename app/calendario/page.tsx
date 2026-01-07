@@ -76,6 +76,8 @@ type DayInfo = {
 
 
   day: number;
+  isPast: boolean;
+  isToday: boolean;
 
 
 
@@ -152,6 +154,7 @@ type MonthInfo = {
 
 
   year: number;
+  monthIndex: number;
 
 
 
@@ -191,63 +194,41 @@ type MonthInfo = {
 
 
 
-const months: MonthInfo[] = [
-
-
-
-
-
-
-
-  { name: "Janeiro", year: 2026, days: 31, startsOn: 4 },
-
-
-
-
-
-
-
-  { name: "Fevereiro", year: 2026, days: 28, startsOn: 0 },
-
-
-
-
-
-
-
-  { name: "Março", year: 2026, days: 31, startsOn: 0 },
-
-
-
-
-
-
-
-  { name: "Abril", year: 2026, days: 30, startsOn: 3 },
-
-
-
-
-
-
-
-  { name: "Maio", year: 2026, days: 31, startsOn: 5 },
-
-
-
-
-
-
-
-  { name: "Junho", year: 2026, days: 30, startsOn: 1 },
-
-
-
-
-
-
-
+const monthNames = [
+  "Janeiro",
+  "Fevereiro",
+  "Mar?o",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
 ];
+
+const monthsToShow = 6;
+
+function buildMonths(referenceDate: Date, count: number): MonthInfo[] {
+  const start = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
+
+  return Array.from({ length: count }, (_, offset) => {
+    const firstDay = new Date(start.getFullYear(), start.getMonth() + offset, 1);
+    const monthIndex = firstDay.getMonth();
+    const year = firstDay.getFullYear();
+    const days = new Date(year, monthIndex + 1, 0).getDate();
+
+    return {
+      name: monthNames[monthIndex],
+      year,
+      monthIndex,
+      days,
+      startsOn: firstDay.getDay(),
+    };
+  });
+}
 
 
 
@@ -693,7 +674,6 @@ function buildDays(
 
 
 
-  monthIndex: number,
 
 
 
@@ -701,7 +681,8 @@ function buildDays(
 
 
 
-  eventsByDate: Map<string, AppEvent[]>
+  eventsByDate: Map<string, AppEvent[]>,
+  todayKey: string
 
 
 
@@ -733,7 +714,9 @@ function buildDays(
 
 
 
-    const dateKey = formatDateKey(month.year, monthIndex, day);
+    const dateKey = formatDateKey(month.year, month.monthIndex, day);
+    const isToday = dateKey === todayKey;
+    const isPast = dateKey < todayKey;
 
 
 
@@ -1034,6 +1017,8 @@ function buildDays(
 
 
         blockLabel,
+        isPast,
+        isToday,
 
 
 
@@ -1100,6 +1085,8 @@ function buildDays(
 
       dinner,
       dinnerPhone,
+      isPast,
+      isToday,
 
 
 
@@ -1462,7 +1449,12 @@ export default function CalendarioPage() {
 
 
 
-  const startKey = formatDateKey(months[0].year, 0, 1);
+  const months = useMemo(() => buildMonths(new Date(), monthsToShow), []);
+  const todayKey = useMemo(() => {
+    const today = new Date();
+    return formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  }, []);
+  const startKey = formatDateKey(months[0].year, months[0].monthIndex, 1);
 
 
 
@@ -1494,7 +1486,7 @@ export default function CalendarioPage() {
 
 
 
-    months.length - 1,
+    lastMonth.monthIndex,
 
 
 
@@ -1961,7 +1953,6 @@ export default function CalendarioPage() {
 
 
 
-    monthIndex: number,
 
 
 
@@ -1993,7 +1984,7 @@ export default function CalendarioPage() {
 
 
 
-    const dateKey = formatDateKey(month.year, monthIndex, day.day);
+    const dateKey = formatDateKey(month.year, month.monthIndex, day.day);
 
 
 
@@ -2001,7 +1992,7 @@ export default function CalendarioPage() {
 
 
 
-    const timestamp = new Date(month.year, monthIndex, day.day).toISOString();
+    const timestamp = new Date(month.year, month.monthIndex, day.day).toISOString();
 
 
 
@@ -2865,7 +2856,7 @@ export default function CalendarioPage() {
 
 
 
-              {months.map((month, monthIndex) => {
+              {months.map((month) => {
 
 
 
@@ -2873,7 +2864,7 @@ export default function CalendarioPage() {
 
 
 
-                const days = buildDays(month, monthIndex, eventsByDate);
+                const days = buildDays(month, eventsByDate, todayKey);
 
 
 
@@ -3100,7 +3091,7 @@ export default function CalendarioPage() {
                       {days.map((day) => {
                         const dateKey = formatDateKey(
                           month.year,
-                          monthIndex,
+                          month.monthIndex,
                           day.day
                         );
                         const lunchPhoneKey = normalizePhoneKey(
@@ -3109,6 +3100,8 @@ export default function CalendarioPage() {
                         const dinnerPhoneKey = normalizePhoneKey(
                           day.dinnerPhone || ""
                         );
+                        const isDisabled = day.status === "blocked" || day.isPast;
+                        const isToday = day.isToday;
                         const ownsLunch =
                           day.lunch !== "Livre" &&
                           memberPhoneKey &&
@@ -3137,8 +3130,8 @@ export default function CalendarioPage() {
 
                           key={`${month.name}-${day.day}`}
                           role="button"
-                          tabIndex={day.status === "blocked" ? -1 : 0}
-                          aria-disabled={day.status === "blocked"}
+                          tabIndex={isDisabled ? -1 : 0}
+                          aria-disabled={isDisabled}
 
 
 
@@ -3153,7 +3146,7 @@ export default function CalendarioPage() {
 
 
 
-                          className={`flex h-32 flex-col justify-between rounded-2xl border px-2 py-2 text-[12px] shadow-sm transition hover:scale-[1.01] hover:shadow-md sm:h-24 sm:text-[11px] ${statusStyles[day.status]} ${day.status === "blocked" ? "cursor-not-allowed opacity-80" : "cursor-pointer"}`}
+                          className={`flex h-32 flex-col justify-between rounded-2xl border px-2 py-2 text-[12px] shadow-sm transition hover:scale-[1.01] hover:shadow-md sm:h-24 sm:text-[11px] ${statusStyles[day.status]} ${isToday ? "ring-2 ring-[#6fb94b]" : ""} ${isDisabled ? "cursor-not-allowed opacity-80" : "cursor-pointer"}`}
 
 
 
@@ -3162,18 +3155,18 @@ export default function CalendarioPage() {
 
 
                           onClick={() => {
-                            if (day.status === "blocked") {
+                            if (isDisabled) {
                               return;
                             }
-                            openModalForDay(month, monthIndex, day);
+                            openModalForDay(month, day);
                           }}
                           onKeyDown={(event) => {
-                            if (day.status === "blocked") {
+                            if (isDisabled) {
                               return;
                             }
                             if (event.key === "Enter" || event.key === " ") {
                               event.preventDefault();
-                              openModalForDay(month, monthIndex, day);
+                              openModalForDay(month, day);
                             }
                           }}
 
